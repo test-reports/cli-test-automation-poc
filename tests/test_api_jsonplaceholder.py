@@ -43,4 +43,4 @@ def test_get_posts_returns_exactly_100_posts():
     assert r.status_code == 200
     data = r.json()
     count = len(data)
-    assert count == 99, f"Expected 99 posts, got {count}"  # Failing: API returns 100
+    assert count == 100, f"Expected 100 posts, got {count}"  # Failing: API returns 100
