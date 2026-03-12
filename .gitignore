@@ -46,3 +46,8 @@ Thumbs.db
 
 # Local config overrides (optional)
 config/local.yaml
+
+# Local secrets (Report Portal token, etc.)
+config/local.env
+.env
+.env.local
