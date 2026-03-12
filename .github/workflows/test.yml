@@ -1,0 +1,33 @@
+name: Test
+
+on:
+  push:
+    branches: [poc-cli-tests]
+  pull_request:
+    branches: [poc-cli-tests]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          mkdir -p reports
+          pytest -v --tb=short --html=reports/report.html --self-contained-html
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pytest-html-report
+          path: reports/report.html
