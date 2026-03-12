@@ -10,7 +10,7 @@ def test_get_posts_returns_200():
     """GET /posts returns status 200."""
     r = requests.get(f"{BASE_URL}/posts")
     assert r.status_code == 200
-
+#test changes
 
 def test_get_posts_returns_list():
     """GET /posts returns a list of posts."""
