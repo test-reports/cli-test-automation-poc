@@ -6,9 +6,14 @@ on:
   pull_request:
     branches: [poc-cli-tests]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -31,3 +36,26 @@ jobs:
         with:
           name: pytest-html-report
           path: reports/report.html
+
+  deploy-report:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/poc-cli-tests'
+    runs-on: macos-latest
+    environment: github-pages
+    steps:
+      - name: Download report
+        uses: actions/download-artifact@v4
+        with:
+          name: pytest-html-report
+
+      - name: Prepare site
+        run: mkdir -p public && mv report.html public/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Publish to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
