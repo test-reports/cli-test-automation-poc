@@ -91,8 +91,6 @@ jobs:
           total = counts.get("total", 0)
           raw_total = counts.get("raw_total", total)
           summary_total = counts.get("summary_total", total)
-          inconsistent = counts.get("summary_inconsistent", False)
-
           # GitHub Pages dashboard URL for this repo (project site)
           owner = os.environ.get("GITHUB_REPOSITORY_OWNER") or (os.environ.get("GITHUB_REPOSITORY", "").split("/")[0] if os.environ.get("GITHUB_REPOSITORY") else "")
           pages_url = f"https://{owner}.github.io/cli-test-automation-poc/" if owner else ""
@@ -105,14 +103,11 @@ jobs:
           lines.append(f"- **Failed**: {failed}")
           lines.append(f"- **Error**: {error}")
           lines.append(f"- **Skipped**: {skipped}")
-          if inconsistent and summary_total != raw_total:
-              lines.append("")
-              lines.append(f"> ⚠️ Detected mismatch between pytest summary ({summary_total} tests) and HTML table count ({raw_total}). Showing pytest summary numbers above.")
           if pages_url:
               lines.append("")
               lines.append(f"- **GitHub Pages dashboard**: {pages_url}")
           lines.append("")
-          lines.append("_Rendered from `reports/report.html`. Generate locally with `pytest --html=reports/report.html --self-contained-html`._")
+          lines.append("_Rendered from `reports/junit.xml`. Generate locally with `pytest --junitxml=reports/junit.xml` and `python -m utils.cli_dashboard --junit-path reports/junit.xml --output-dir dashboard`._")
 
           summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
           if summary_path:

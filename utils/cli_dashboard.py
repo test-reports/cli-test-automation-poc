@@ -4,9 +4,9 @@ The dashboard is a single self-contained HTML file with:
 - Tailwind CSS (via CDN) for layout and styling
 - Chart.js (via CDN) for basic charts
 
-It reads a JUnit XML report and derives summary + individual test rows.
-This avoids scraping pytest-html and mirrors the Product Catalog API
-dashboard approach (structured data first, then HTML).
+It reads a JUnit XML report and derives summary + individual test rows,
+mirroring the Product Catalog API dashboard approach (structured data
+first, then HTML).
 
 Intended usage from CI:
 - After pytest generates reports/junit.xml (via --junitxml)
@@ -134,7 +134,7 @@ def build_dashboard(junit_path: Path, output_dir: Path) -> Path:
     else:
         tests_table_html = (
             '<tr><td colspan="3" class="py-4 px-3 text-sm text-slate-500">'
-            "No individual test rows could be extracted from the pytest HTML report."
+            "No individual test rows could be extracted from the JUnit XML report."
             "</td></tr>"
         )
 
@@ -185,11 +185,9 @@ def build_dashboard(junit_path: Path, output_dir: Path) -> Path:
         <div>
           <h1 class="text-2xl font-semibold tracking-tight">CLI Test Dashboard</h1>
           <p class="text-sm text-slate-400 mt-1">Run date: {run_date} · {timestamp}</p>
-          <p class="text-xs text-slate-500 mt-1">Summary view generated from pytest HTML report.</p>
+          <p class="text-xs text-slate-500 mt-1">Summary view generated from JUnit XML report.</p>
         </div>
       </header>
-      {inconsistency_banner}
-
       <section class="grid gap-4 md:grid-cols-4 mb-8">
         <div class="bg-surface rounded-xl border border-slate-800 p-4">
           <div class="text-xs uppercase tracking-wide text-slate-400 mb-1">Total tests</div>
@@ -219,8 +217,7 @@ def build_dashboard(junit_path: Path, output_dir: Path) -> Path:
         <div class="bg-surface rounded-xl border border-slate-800 p-4">
           <h2 class="text-sm font-semibold mb-3">Summary</h2>
           <p class="text-sm text-slate-300">
-            This dashboard summarizes the latest test run. Counts are inferred from the pytest HTML report;
-            for full details, open the raw report.
+            This dashboard summarizes the latest test run. Counts and test list are derived from the JUnit XML report.
           </p>
           <ul class="mt-4 space-y-1 text-sm text-slate-300">
             <li><span class="text-slate-400">Passed:</span> {passed}</li>
