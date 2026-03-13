@@ -1,0 +1,13 @@
+# CLI test automation configuration
+
+cli:
+  # Command to invoke the CLI under test (e.g. "python -m mycli" or "mycli")
+  command: "echo"
+  # Default timeout in seconds for CLI runs
+  timeout: 30
+
+paths:
+  reports: "reports"
+
+logging:
+  level: "INFO"
