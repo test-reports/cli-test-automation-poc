@@ -8,10 +8,12 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
 
 jobs:
   test:
-    runs-on: self-hosted
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -21,18 +23,9 @@ jobs:
           .venv/bin/pip install -r requirements.txt
 
       - name: Run tests
-        env:
-          RP_API_KEY: ${{ secrets.RP_API_KEY }}
-          RP_ENDPOINT: http://localhost:8080
         run: |
           mkdir -p reports
-          if [ -n "$RP_API_KEY" ]; then
-            echo "::notice::Report Portal: enabled (RP_API_KEY set)"
-            .venv/bin/pytest -v --tb=short --html=reports/report.html --self-contained-html --reportportal
-          else
-            echo "::notice::Report Portal: skipped (no RP_API_KEY secret)"
-            .venv/bin/pytest -v --tb=short --html=reports/report.html --self-contained-html
-          fi
+          .venv/bin/pytest -v --tb=short --html=reports/report.html --self-contained-html
 
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
@@ -40,3 +33,35 @@ jobs:
         with:
           name: pytest-html-report
           path: reports/report.html
+
+  deploy-dashboard:
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download pytest HTML report artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pytest-html-report
+          path: artifacts
+
+      - name: Generate dashboard
+        run: |
+          mkdir -p public
+          python -m utils.cli_dashboard \
+            --report-path artifacts/report.html \
+            --output-dir public
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

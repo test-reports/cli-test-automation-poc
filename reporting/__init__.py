@@ -1,5 +1,3 @@
-"""Reporting integrations (ReportPortal, etc.)."""
+"""Reporting helpers for CLI test automation."""
 
-from reporting.reportportal_integration import ReportPortalIntegration
-
-__all__ = ["ReportPortalIntegration"]
+__all__ = []
