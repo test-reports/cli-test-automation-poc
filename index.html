@@ -41,23 +41,10 @@
       <header class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 class="text-2xl font-semibold tracking-tight">CLI Test Dashboard</h1>
-          <p class="text-sm text-slate-400 mt-1">Run date: 2026-03-13 · 2026-03-13 13:24:20 PDT</p>
-          <p class="text-xs text-slate-500 mt-1">Summary view generated from pytest HTML report.</p>
+          <p class="text-sm text-slate-400 mt-1">Run date: 2026-03-13 · 2026-03-13 13:34:04 PDT</p>
+          <p class="text-xs text-slate-500 mt-1">Summary view generated from JUnit XML report.</p>
         </div>
-        <a
-          href="../reports/report.html"
-          class="inline-flex items-center px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm font-medium border border-slate-700 transition"
-        >
-          View raw pytest HTML report
-        </a>
       </header>
-      
-      <div class="mb-4 rounded-lg border border-amber-400/40 bg-amber-500/5 px-4 py-3 text-sm text-amber-200">
-        Detected a mismatch between the pytest summary line and the HTML table counts.
-        Numbers below use the pytest summary, which is usually more accurate.
-      </div>
-    
-
       <section class="grid gap-4 md:grid-cols-4 mb-8">
         <div class="bg-surface rounded-xl border border-slate-800 p-4">
           <div class="text-xs uppercase tracking-wide text-slate-400 mb-1">Total tests</div>
@@ -87,8 +74,7 @@
         <div class="bg-surface rounded-xl border border-slate-800 p-4">
           <h2 class="text-sm font-semibold mb-3">Summary</h2>
           <p class="text-sm text-slate-300">
-            This dashboard summarizes the latest test run. Counts are inferred from the pytest HTML report;
-            for full details, open the raw report.
+            This dashboard summarizes the latest test run. Counts and test list are derived from the JUnit XML report.
           </p>
           <ul class="mt-4 space-y-1 text-sm text-slate-300">
             <li><span class="text-slate-400">Passed:</span> 5</li>
@@ -111,7 +97,11 @@
               </tr>
             </thead>
             <tbody>
-<tr><td colspan="3" class="py-4 px-3 text-sm text-slate-500">No individual test rows could be extracted from the pytest HTML report.</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">1</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_posts_returns_200</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">2</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_posts_returns_list</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">3</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_single_post_has_expected_keys</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">4</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_users_returns_200</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">5</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_posts_returns_exactly_100_posts</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td></tr>
             </tbody>
           </table>
         </div>
