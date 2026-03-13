@@ -32,9 +32,13 @@ def test_get_single_post_has_expected_keys():
 
 
 def test_get_users_returns_200():
-    """GET /users returns status 200."""
+    """GET /users returns status 200 (intentional failure for demo)."""
     r = requests.get(f"{BASE_URL}/users")
-    assert r.status_code == 200
+    expected_status = 201
+    actual = r.status_code
+    assert (
+        actual == expected_status
+    ), f"Expected status {expected_status} for GET /users, got {actual}"
 
 
 def test_get_posts_returns_exactly_100_posts():
