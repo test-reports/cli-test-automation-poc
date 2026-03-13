@@ -31,7 +31,6 @@ jobs:
           import os
           from pathlib import Path
           from utils.cli_dashboard import _infer_counts
-          from urllib.parse import quote_plus
 
           report = Path("reports/report.html")
           if not report.is_file():
@@ -49,10 +48,9 @@ jobs:
           summary_total = counts.get("summary_total", total)
           inconsistent = counts.get("summary_inconsistent", False)
 
-          # Link to this run's GitHub Actions summary page
-          repo = os.environ.get("GITHUB_REPOSITORY", "")
-          run_id = os.environ.get("GITHUB_RUN_ID", "")
-          dashboard_url = f"https://github.com/{quote_plus(repo)}/actions/runs/{run_id}" if repo and run_id else ""
+          # GitHub Pages dashboard URL for this repo (project site)
+          owner = os.environ.get("GITHUB_REPOSITORY_OWNER") or (os.environ.get("GITHUB_REPOSITORY", "").split("/")[0] if os.environ.get("GITHUB_REPOSITORY") else "")
+          pages_url = f"https://{owner}.github.io/cli-test-automation-poc/" if owner else ""
 
           lines = []
           lines.append("### CLI test dashboard summary")
@@ -65,9 +63,9 @@ jobs:
           if inconsistent and summary_total != raw_total:
               lines.append("")
               lines.append(f"> ⚠️ Detected mismatch between pytest summary ({summary_total} tests) and HTML table count ({raw_total}). Showing pytest summary numbers above.")
-          if dashboard_url:
+          if pages_url:
               lines.append("")
-              lines.append(f"- **GitHub Actions dashboard**: {dashboard_url}")
+              lines.append(f"- **GitHub Pages dashboard**: {pages_url}")
           lines.append("")
           lines.append("_Rendered from `reports/report.html`. Generate locally with `pytest --html=reports/report.html --self-contained-html`._")
 
