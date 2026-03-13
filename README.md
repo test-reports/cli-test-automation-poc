@@ -65,19 +65,6 @@ Workflows use GitHub-hosted runners (for example `macos-latest`) so no self-host
 
 Generated reports (JUnit XML, HTML, etc.) can be written under `reports/`. Add your preferred pytest plugins (e.g. `pytest-html`, `pytest-junit`) and configure them in `pytest.ini` or `pyproject.toml`.
 
-### Viewing the HTML report in the browser (no download)
-
-On each **push** to `poc-cli-tests`, the workflow publishes the pytest HTML report to **GitHub Pages**. You can open it in a browser without downloading.
-
-1. **Enable GitHub Pages (one-time):** Repo → **Settings** → **Pages** → under "Build and deployment", set **Source** to **GitHub Actions**.
-2. **Report URL** (after the first successful push):
-   - **User/org site:** `https://<username>.github.io/cli-test-automation-poc/report.html`
-   - **Project site:** `https://<username>.github.io/<repo-name>/report.html`
-
-The artifact is still uploaded for the run; the Pages deployment gives you a stable URL to view the latest report.
-
----
-
 ## Complete sequence (Mac terminal)
 
 From a Mac terminal, run these in order to set up, run tests locally, and trigger the CI workflow.
@@ -132,4 +119,4 @@ git commit -m "Your commit message"
 git push origin poc-cli-tests
 ```
 
-After the push, the **Test** workflow runs on GitHub. Open the repo → **Actions** → select the run → download the **pytest-html-report** artifact to view the HTML report.
+After the push, the **Test** workflow runs on GitHub. Open the repo → **Actions** → select the run to inspect logs and test status.
