@@ -140,19 +140,12 @@ def _extract_tests(report_html: str) -> List[Tuple[str, str, str]]:
         return html.escape(s.strip())
 
     # --- Primary strategy: pytest-html results table (col-name / col-result) ---
+    # Accept both single and double quotes for class attributes.
     row_pattern = re.compile(
-        r"<tr[^>]*>(.*?)</tr>",
+        r"<tr[^>]*>.*?<td[^>]*class=['\"][^'\"]*col-name[^'\"]*['\"][^>]*>(?P<name>.*?)</td>.*?"
+        r"<td[^>]*class=['\"][^'\"]*col-result[^'\"]*['\"][^>]*>(?P<result>.*?)</td>.*?</tr>",
         re.IGNORECASE | re.DOTALL,
     )
-    name_cell_pattern = re.compile(
-        r'<td[^>]*class="[^"]*col-name[^"]*"[^>]*>(.*?)</td>',
-        re.IGNORECASE | re.DOTALL,
-    )
-    result_cell_pattern = re.compile(
-        r'<td[^>]*class="[^"]*col-result[^"]*"[^>]*>(.*?)</td>',
-        re.IGNORECASE | re.DOTALL,
-    )
-
     def _status_to_badge(status_text: str) -> Tuple[str, str]:
         st = status_text.strip().lower()
         if st == "passed":
@@ -166,18 +159,12 @@ def _extract_tests(report_html: str) -> List[Tuple[str, str, str]]:
         return "", ""
 
     for m in row_pattern.finditer(report_html):
-        row_html = m.group(1)
-        name_match = name_cell_pattern.search(row_html)
-        result_match = result_cell_pattern.search(row_html)
-        if not (name_match and result_match):
-            continue
-
-        raw_label = name_match.group(1)
+        raw_label = m.group("name")
         label = _strip_tags(raw_label)
         if not label:
             continue
 
-        raw_status = _strip_tags(result_match.group(1))
+        raw_status = _strip_tags(m.group("result"))
         status, badge_class = _status_to_badge(raw_status)
         if not status:
             continue
