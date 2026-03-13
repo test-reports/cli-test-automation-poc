@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CLI Test Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              background: '#0f1114',
+              surface: '#151820',
+              border: '#1f2430',
+              success: '#22c55e',
+              failed: '#fb7185',
+              warning: '#eab308',
+              info: '#38bdf8'
+            }
+          }
+        }
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+      body {
+        background: #0f1114;
+        color: #e6e8eb;
+      }
+      .chart-container {
+        position: relative;
+        height: 260px;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen font-sans">
+    <div class="max-w-6xl mx-auto px-4 py-8">
+      <header class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-semibold tracking-tight">CLI Test Dashboard</h1>
+          <p class="text-sm text-slate-400 mt-1">Run date: 2026-03-13 · 2026-03-13 20:05:01</p>
+          <p class="text-xs text-slate-500 mt-1">Summary view generated from pytest HTML report.</p>
+        </div>
+        <a
+          href="../reports/report.html"
+          class="inline-flex items-center px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm font-medium border border-slate-700 transition"
+        >
+          View raw pytest HTML report
+        </a>
+      </header>
+      
+      <div class="mb-4 rounded-lg border border-amber-400/40 bg-amber-500/5 px-4 py-3 text-sm text-amber-200">
+        Detected a mismatch between the pytest summary line and the HTML table counts.
+        Numbers below use the pytest summary, which is usually more accurate.
+      </div>
+    
+
+      <section class="grid gap-4 md:grid-cols-4 mb-8">
+        <div class="bg-surface rounded-xl border border-slate-800 p-4">
+          <div class="text-xs uppercase tracking-wide text-slate-400 mb-1">Total tests</div>
+          <div class="text-2xl font-semibold">5</div>
+        </div>
+        <div class="bg-surface rounded-xl border border-slate-800 p-4">
+          <div class="text-xs uppercase tracking-wide text-slate-400 mb-1">Passed</div>
+          <div class="text-2xl font-semibold text-emerald-400">5</div>
+        </div>
+        <div class="bg-surface rounded-xl border border-slate-800 p-4">
+          <div class="text-xs uppercase tracking-wide text-slate-400 mb-1">Failed / Error</div>
+          <div class="text-2xl font-semibold text-rose-400">0</div>
+        </div>
+        <div class="bg-surface rounded-xl border border-slate-800 p-4">
+          <div class="text-xs uppercase tracking-wide text-slate-400 mb-1">Pass rate</div>
+          <div class="text-2xl font-semibold text-sky-400">100.0%</div>
+        </div>
+      </section>
+
+      <section class="grid gap-6 md:grid-cols-2">
+        <div class="bg-surface rounded-xl border border-slate-800 p-4">
+          <h2 class="text-sm font-semibold mb-3">Result distribution</h2>
+          <div class="chart-container">
+            <canvas id="resultDistributionChart"></canvas>
+          </div>
+        </div>
+        <div class="bg-surface rounded-xl border border-slate-800 p-4">
+          <h2 class="text-sm font-semibold mb-3">Summary</h2>
+          <p class="text-sm text-slate-300">
+            This dashboard summarizes the latest test run. Counts are inferred from the pytest HTML report;
+            for full details, open the raw report.
+          </p>
+          <ul class="mt-4 space-y-1 text-sm text-slate-300">
+            <li><span class="text-slate-400">Passed:</span> 5</li>
+            <li><span class="text-slate-400">Failed:</span> 0</li>
+            <li><span class="text-slate-400">Error:</span> 0</li>
+            <li><span class="text-slate-400">Skipped:</span> 0</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const ctx = document.getElementById('resultDistributionChart');
+      if (ctx) {
+        new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Passed', 'Failed', 'Error', 'Skipped'],
+            datasets: [{
+              data: [5, 0, 0, 0],
+              backgroundColor: [
+                '#22c55e',
+                '#fb7185',
+                '#f97316',
+                '#64748b'
+              ],
+              borderColor: '#020617',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  color: '#e5e7eb'
+                }
+              }
+            }
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
