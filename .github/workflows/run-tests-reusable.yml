@@ -29,9 +29,17 @@ on:
         required: false
         type: string
         default: "test-reports/cli-test-automation-poc"
+      # Report Portal endpoint (used when rp_api_key secret is passed). Override if RP is not localhost.
+      rp_endpoint:
+        required: false
+        type: string
+        default: "http://localhost:8080"
     secrets:
       # Token with read access to the repository above (for checkout). Required if repo is private.
       repo_access_token:
+        required: false
+      # Report Portal API key from caller (e.g. poc-app-repo secret RP_API_KEY). When set, pytest runs with --reportportal.
+      rp_api_key:
         required: false
 
 permissions:
@@ -64,13 +72,24 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Create venv and install dependencies
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r requirements.txt
 
       - name: Run tests
+        env:
+          RP_API_KEY: ${{ secrets.rp_api_key }}
+          RP_ENDPOINT: ${{ inputs.rp_endpoint }}
         run: |
           mkdir -p reports
-          pytest -v --tb=short --html=reports/report.html --self-contained-html
+          if [ -n "$RP_API_KEY" ]; then
+            echo "::notice::Report Portal: enabled (RP_API_KEY from caller)"
+            .venv/bin/pytest -v --tb=short --html=reports/report.html --self-contained-html --reportportal
+          else
+            echo "::notice::Report Portal: skipped (no rp_api_key secret passed)"
+            .venv/bin/pytest -v --tb=short --html=reports/report.html --self-contained-html
+          fi
 
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
