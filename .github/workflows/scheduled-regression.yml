@@ -1,12 +1,11 @@
 # Scheduled regression run. Runs on the default branch only (GitHub Actions constraint).
-# Schedule is 2:40 PM America/Los_Angeles (same timezone as dashboard). GitHub cron is UTC only:
-# 2:40 PM PDT = 21:40 UTC; 2:40 PM PST = 22:40 UTC. Using 21:40 UTC => 2:40 PM PDT / 1:40 PM PST.
+# 22:00 UTC = 3:00 PM PDT (2:00 PM PST in winter).
 name: Scheduled regression
 
 on:
   schedule:
-    # 2:40 PM LA (America/Los_Angeles): 21:40 UTC (PDT) / in PST winter this runs 1:40 PM LA
-    - cron: '40 21 * * *'
+    # 22:00 UTC = 3:00 PM PDT
+    - cron: '0 22 * * *'
 
 permissions:
   contents: write
