@@ -1,10 +1,8 @@
-name: Test and report
+name: Listener (run-tests)
 
 on:
-  push:
-    branches: [poc-cli-tests]
-  pull_request:
-    branches: [poc-cli-tests]
+  repository_dispatch:
+    types: [run-tests]
 
 permissions:
   contents: write
@@ -13,6 +11,19 @@ jobs:
   test:
     runs-on: macos-latest
     steps:
+      # Log trigger context (triggered by repository_dispatch from another entity). Revert: remove this step only.
+      - name: Log trigger context
+        run: |
+          echo "::group::Trigger context"
+          echo "event_name: ${{ github.event_name }}"
+          echo "event_action: ${{ github.event.action }}"
+          echo "actor: ${{ github.actor }}"
+          echo "repository: ${{ github.repository }}"
+          echo "run_id: ${{ github.run_id }}"
+          echo "ref: ${{ github.ref }}"
+          echo "sha: ${{ github.sha }}"
+          echo "client_payload: ${{ toJSON(github.event.client_payload) }}"
+          echo "::endgroup::"
       - uses: actions/checkout@v4
 
       - name: Create venv and install dependencies
@@ -42,20 +53,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Ensure full history so we can create/update the dashboard branch
           git fetch origin --prune
 
-          # Create a worktree for the dashboard branch
           WORKTREE_DIR="$(mktemp -d)"
           if git show-ref --verify --quiet "refs/remotes/origin/${DASHBOARD_BRANCH}"; then
-            # Create/update a local branch tracking origin/DASHBOARD_BRANCH and add worktree on that branch
             git worktree add -B "${DASHBOARD_BRANCH}" "${WORKTREE_DIR}" "origin/${DASHBOARD_BRANCH}"
           else
-            # Create a new local branch from current HEAD
             git worktree add -B "${DASHBOARD_BRANCH}" "${WORKTREE_DIR}"
           fi
 
-          # Sync generated dashboard into the worktree (preserve .git)
           rsync -a --delete --exclude='.git' dashboard/ "${WORKTREE_DIR}/"
 
           cd "${WORKTREE_DIR}"

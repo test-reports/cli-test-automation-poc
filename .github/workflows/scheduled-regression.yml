@@ -1,16 +1,17 @@
-name: Test and report
+# Scheduled regression run. Runs on the default branch only (GitHub Actions constraint).
+# 21:55 UTC = 2:55 PM PDT (1:55 PM PST in winter).
+name: Scheduled regression
 
 on:
-  push:
-    branches: [poc-cli-tests]
-  pull_request:
-    branches: [poc-cli-tests]
+  schedule:
+    # 21:55 UTC = 2:55 PM PDT
+    - cron: '55 21 * * *'
 
 permissions:
   contents: write
 
 jobs:
-  test:
+  regression:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,10 +21,10 @@ jobs:
           python3 -m venv .venv
           .venv/bin/pip install -r requirements.txt
 
-      - name: Run smoke tests
+      - name: Run regression tests
         run: |
           mkdir -p reports
-          .venv/bin/pytest -v --tb=short -m smoke --junitxml=reports/junit.xml
+          .venv/bin/pytest -v --tb=short -m regression --junitxml=reports/junit.xml
 
       - name: Generate CLI HTML dashboard
         if: always()
@@ -42,20 +43,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Ensure full history so we can create/update the dashboard branch
           git fetch origin --prune
 
-          # Create a worktree for the dashboard branch
           WORKTREE_DIR="$(mktemp -d)"
           if git show-ref --verify --quiet "refs/remotes/origin/${DASHBOARD_BRANCH}"; then
-            # Create/update a local branch tracking origin/DASHBOARD_BRANCH and add worktree on that branch
             git worktree add -B "${DASHBOARD_BRANCH}" "${WORKTREE_DIR}" "origin/${DASHBOARD_BRANCH}"
           else
-            # Create a new local branch from current HEAD
             git worktree add -B "${DASHBOARD_BRANCH}" "${WORKTREE_DIR}"
           fi
 
-          # Sync generated dashboard into the worktree (preserve .git)
           rsync -a --delete --exclude='.git' dashboard/ "${WORKTREE_DIR}/"
 
           cd "${WORKTREE_DIR}"
@@ -63,7 +59,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No dashboard changes to commit."
           else
-            git commit -m "Update CLI dashboard (smoke) for run ${GITHUB_RUN_ID}"
+            git commit -m "Update CLI dashboard (scheduled regression) run ${GITHUB_RUN_ID}"
             git push origin "${DASHBOARD_BRANCH}"
           fi
 
@@ -86,14 +82,11 @@ jobs:
           error = counts.get("error", 0)
           skipped = counts.get("skipped", 0)
           total = counts.get("total", 0)
-          raw_total = counts.get("raw_total", total)
-          summary_total = counts.get("summary_total", total)
-          # GitHub Pages dashboard URL for this repo (project site)
           owner = os.environ.get("GITHUB_REPOSITORY_OWNER") or (os.environ.get("GITHUB_REPOSITORY", "").split("/")[0] if os.environ.get("GITHUB_REPOSITORY") else "")
           pages_url = f"https://{owner}.github.io/cli-test-automation-poc/" if owner else ""
 
           lines = []
-          lines.append("### CLI test dashboard summary (smoke)")
+          lines.append("### CLI test dashboard summary (scheduled regression)")
           lines.append("")
           lines.append(f"- **Total tests**: {total}")
           lines.append(f"- **Passed**: {passed}")
@@ -104,7 +97,7 @@ jobs:
               lines.append("")
               lines.append(f"- **GitHub Pages dashboard**: {pages_url}")
           lines.append("")
-          lines.append("_Smoke tests only. Rendered from `reports/junit.xml`. Generate locally with `pytest -m smoke --junitxml=reports/junit.xml` and `python -m utils.cli_dashboard --junit-path reports/junit.xml --output-dir dashboard`._")
+          lines.append("_Scheduled run (regression only). Rendered from `reports/junit.xml`._")
 
           summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
           if summary_path:
