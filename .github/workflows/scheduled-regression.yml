@@ -1,11 +1,11 @@
 # Scheduled regression run. Runs on the default branch only (GitHub Actions constraint).
-# 22:00 UTC = 3:00 PM PDT (2:00 PM PST in winter).
+# 21:55 UTC = 2:55 PM PDT (1:55 PM PST in winter).
 name: Scheduled regression
 
 on:
   schedule:
-    # 22:00 UTC = 3:00 PM PDT
-    - cron: '0 22 * * *'
+    # 21:55 UTC = 2:55 PM PDT
+    - cron: '55 21 * * *'
 
 permissions:
   contents: write
