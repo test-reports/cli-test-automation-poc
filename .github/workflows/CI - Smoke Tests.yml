@@ -15,6 +15,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Log trigger
+        run: echo "Workflow triggered via ${{ github.event_name }}"
+
+      - name: Log trigger context
+        run: |
+          echo "::group::Trigger context (CI - Smoke Tests)"
+          echo "event_name: ${{ github.event_name }}"
+          echo "actor: ${{ github.actor }}"
+          echo "repository: ${{ github.repository }}"
+          echo "ref: ${{ github.ref }}"
+          echo "sha: ${{ github.sha }}"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "pr_number: ${{ github.event.pull_request.number }}"
+            echo "pr_title: ${{ github.event.pull_request.title }}"
+          fi
+          echo "::endgroup::"
+
       - name: Create venv and install dependencies
         run: |
           python3 -m venv .venv
