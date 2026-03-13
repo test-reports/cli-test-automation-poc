@@ -15,8 +15,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: python3 -m pip install -r requirements.txt
+      - name: Create venv and install dependencies
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -r requirements.txt
 
       - name: Run tests
         env:
@@ -26,10 +28,10 @@ jobs:
           mkdir -p reports
           if [ -n "$RP_API_KEY" ]; then
             echo "::notice::Report Portal: enabled (RP_API_KEY set)"
-            python3 -m pytest -v --tb=short --html=reports/report.html --self-contained-html --reportportal
+            .venv/bin/pytest -v --tb=short --html=reports/report.html --self-contained-html --reportportal
           else
             echo "::notice::Report Portal: skipped (no RP_API_KEY secret)"
-            python3 -m pytest -v --tb=short --html=reports/report.html --self-contained-html
+            .venv/bin/pytest -v --tb=short --html=reports/report.html --self-contained-html
           fi
 
       - name: Upload HTML report
