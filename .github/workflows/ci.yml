@@ -46,8 +46,10 @@ jobs:
           # Create a worktree for the dashboard branch
           WORKTREE_DIR="$(mktemp -d)"
           if git show-ref --verify --quiet "refs/remotes/origin/${DASHBOARD_BRANCH}"; then
-            git worktree add "${WORKTREE_DIR}" "origin/${DASHBOARD_BRANCH}"
+            # Create/update a local branch tracking origin/DASHBOARD_BRANCH and add worktree on that branch
+            git worktree add -B "${DASHBOARD_BRANCH}" "${WORKTREE_DIR}" "origin/${DASHBOARD_BRANCH}"
           else
+            # Create a new local branch from current HEAD
             git worktree add -B "${DASHBOARD_BRANCH}" "${WORKTREE_DIR}"
           fi
 
