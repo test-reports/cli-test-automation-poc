@@ -11,6 +11,19 @@ jobs:
   test:
     runs-on: macos-latest
     steps:
+      # Log trigger context (triggered by repository_dispatch from another entity). Revert: remove this step only.
+      - name: Log trigger context
+        run: |
+          echo "::group::Trigger context"
+          echo "event_name: ${{ github.event_name }}"
+          echo "event_action: ${{ github.event.action }}"
+          echo "actor: ${{ github.actor }}"
+          echo "repository: ${{ github.repository }}"
+          echo "run_id: ${{ github.run_id }}"
+          echo "ref: ${{ github.ref }}"
+          echo "sha: ${{ github.sha }}"
+          echo "client_payload: ${{ toJSON(github.event.client_payload) }}"
+          echo "::endgroup::"
       - uses: actions/checkout@v4
 
       - name: Set up Python
@@ -22,9 +35,15 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run tests
+        env:
+          RP_API_KEY: ${{ secrets.RP_API_KEY }}
         run: |
           mkdir -p reports
-          pytest -v --tb=short --html=reports/report.html --self-contained-html
+          if [ -n "$RP_API_KEY" ]; then
+            pytest -v --tb=short --html=reports/report.html --self-contained-html --reportportal
+          else
+            pytest -v --tb=short --html=reports/report.html --self-contained-html
+          fi
 
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
