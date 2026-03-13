@@ -51,6 +51,31 @@ export CLI_CMD="mycli"
 pytest
 ```
 
+## Self-hosted runner
+
+Workflows use `runs-on: self-hosted`. The runner is not in the repo (the `actions-runner/` folder is gitignored). Add it once: repo **Settings → Actions → Runners → New self-hosted runner**, then download, extract, and run `config.sh` in a new `actions-runner` directory. After that, from a Mac terminal:
+
+**Foreground (from anywhere):**
+```bash
+cd /Users/azat/Documents/GitHub/cli-test-automation-poc
+./scripts/runner-start.sh
+```
+
+**Or run the runner binary directly:**
+```bash
+cd /Users/azat/Documents/GitHub/cli-test-automation-poc/actions-runner
+./run.sh
+```
+
+**As a service (install once, then start/stop):**
+```bash
+cd /Users/azat/Documents/GitHub/cli-test-automation-poc
+./scripts/runner-svc.sh install
+./scripts/runner-svc.sh start
+# to stop later:
+# ./scripts/runner-svc.sh stop
+```
+
 ## Configuration
 
 - **config/config.yaml** — CLI command, timeout, report paths, logging.

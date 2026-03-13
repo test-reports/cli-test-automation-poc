@@ -40,6 +40,17 @@ reports/*.xml
 reports/*.html
 !reports/.gitkeep
 
+# Type checkers / linters / test tooling
+.mypy_cache/
+.ruff_cache/
+.tox/
+.hypothesis/
+.cache/
+
+# Pip leftovers
+pip-log.txt
+pip-delete-this-directory.txt
+
 # OS
 .DS_Store
 Thumbs.db
@@ -51,3 +62,11 @@ config/local.yaml
 config/local.env
 .env
 .env.local
+.env.*
+!.env.example
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Self-hosted runner (binaries, credentials, state — not needed for GitHub; add via Settings → Actions → Runners)
+actions-runner/

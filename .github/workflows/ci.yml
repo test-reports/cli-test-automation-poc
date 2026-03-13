@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   test:
-    runs-on: macos-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
@@ -26,6 +26,7 @@ jobs:
       - name: Run tests
         env:
           RP_API_KEY: ${{ secrets.RP_API_KEY }}
+          RP_ENDPOINT: http://localhost:8080
         run: |
           mkdir -p reports
           if [ -n "$RP_API_KEY" ]; then

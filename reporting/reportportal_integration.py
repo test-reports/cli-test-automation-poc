@@ -31,7 +31,7 @@ class ReportPortalIntegration:
             launch_name: ReportPortal launch name (optional, can be set per run)
         """
         self.api_key = api_key or os.getenv("RP_API_KEY")
-        self.endpoint = endpoint or os.getenv("RP_ENDPOINT", "https://btnreport.com")
+        self.endpoint = endpoint or os.getenv("RP_ENDPOINT", "http://localhost:8080")
         self.project = project or os.getenv("RP_PROJECT", "superadmin_personal")
         self.launch_name = launch_name or os.getenv("RP_LAUNCH", "CLI_Test_Launch")
 

@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   test:
-    runs-on: macos-latest
+    runs-on: self-hosted
     steps:
       # Log trigger context (triggered by repository_dispatch from another entity). Revert: remove this step only.
       - name: Log trigger context
@@ -37,6 +37,7 @@ jobs:
       - name: Run tests
         env:
           RP_API_KEY: ${{ secrets.RP_API_KEY }}
+          RP_ENDPOINT: http://localhost:8080
         run: |
           mkdir -p reports
           if [ -n "$RP_API_KEY" ]; then
