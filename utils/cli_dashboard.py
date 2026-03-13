@@ -36,7 +36,7 @@ def _escape_html(s: str) -> str:
     )
 
 
-def _parse_junit(junit_path: Path) -> Tuple[Dict[str, int], List[Tuple[str, str, str]]]:
+def _parse_junit(junit_path: Path) -> Tuple[Dict[str, int], List[Tuple[str, str, str, str]]]:
     """Parse a JUnit XML report into counts and test rows.
 
     Returns:
@@ -56,7 +56,7 @@ def _parse_junit(junit_path: Path) -> Tuple[Dict[str, int], List[Tuple[str, str,
         "skipped": 0,
         "total": 0,
     }
-    rows: List[Tuple[str, str, str]] = []
+    rows: List[Tuple[str, str, str, str]] = []
 
     def status_badge(tag: str) -> Tuple[str, str]:
         t = tag.lower()
@@ -77,10 +77,22 @@ def _parse_junit(junit_path: Path) -> Tuple[Dict[str, int], List[Tuple[str, str,
         label = _escape_html(label)
 
         status = "passed"
+        error_message = ""
         if tc.find("failure") is not None:
             status = "failed"
+            failure_elem = tc.find("failure")
+            # Use message attribute if present, otherwise element text.
+            msg = (failure_elem.get("message") or "").strip() if failure_elem is not None else ""
+            if not msg and failure_elem is not None and failure_elem.text:
+                msg = failure_elem.text.strip()
+            error_message = _escape_html(msg)[:500] if msg else ""
         elif tc.find("error") is not None:
             status = "error"
+            error_elem = tc.find("error")
+            msg = (error_elem.get("message") or "").strip() if error_elem is not None else ""
+            if not msg and error_elem is not None and error_elem.text:
+                msg = error_elem.text.strip()
+            error_message = _escape_html(msg)[:500] if msg else ""
         elif tc.find("skipped") is not None:
             status = "skipped"
 
@@ -88,7 +100,7 @@ def _parse_junit(junit_path: Path) -> Tuple[Dict[str, int], List[Tuple[str, str,
         counts[status] += 1
         counts["total"] += 1
 
-        rows.append((label, status_label, badge))
+        rows.append((label, status_label, badge, error_message))
 
     return counts, rows
 
@@ -120,7 +132,11 @@ def build_dashboard(junit_path: Path, output_dir: Path) -> Path:
     # Extract individual tests similar to Product Catalog API dashboard
     if test_rows:
         table_rows_html_parts: List[str] = []
-        for idx, (label, status, badge_class) in enumerate(test_rows, start=1):
+        for idx, (label, status, badge_class, error_message) in enumerate(test_rows, start=1):
+            if error_message:
+                err_cell = f'<td class="py-3 px-3 text-xs text-slate-300 max-w-md break-words">{error_message}</td>'
+            else:
+                err_cell = '<td class="py-3 px-3 text-xs text-slate-500">—</td>'
             table_rows_html_parts.append(
                 f'<tr class="border-b border-slate-800 hover:bg-slate-800/40">'
                 f'<td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">{idx}</td>'
@@ -128,12 +144,13 @@ def build_dashboard(junit_path: Path, output_dir: Path) -> Path:
                 f'<td class="py-3 px-3 text-sm">'
                 f'<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium {badge_class}">{status}</span>'
                 f"</td>"
+                f"{err_cell}"
                 f"</tr>"
             )
         tests_table_html = "\n".join(table_rows_html_parts)
     else:
         tests_table_html = (
-            '<tr><td colspan="3" class="py-4 px-3 text-sm text-slate-500">'
+            '<tr><td colspan="4" class="py-4 px-3 text-sm text-slate-500">'
             "No individual test rows could be extracted from the JUnit XML report."
             "</td></tr>"
         )
@@ -237,6 +254,7 @@ def build_dashboard(junit_path: Path, output_dir: Path) -> Path:
                 <th class="py-2 px-3 w-12">#</th>
                 <th class="py-2 px-3">Test</th>
                 <th class="py-2 px-3">Status</th>
+                <th class="py-2 px-3">Error Message</th>
               </tr>
             </thead>
             <tbody>

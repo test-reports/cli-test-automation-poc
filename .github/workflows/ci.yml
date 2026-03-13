@@ -26,12 +26,14 @@ jobs:
           .venv/bin/pytest -v --tb=short --junitxml=reports/junit.xml
 
       - name: Generate CLI HTML dashboard
+        if: always()
         run: |
           .venv/bin/python -m utils.cli_dashboard \
             --junit-path reports/junit.xml \
             --output-dir dashboard
 
       - name: Push dashboard to test-dashboard branch
+        if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DASHBOARD_BRANCH: test-dashboard
@@ -66,6 +68,7 @@ jobs:
           fi
 
       - name: Write CLI test dashboard summary
+        if: always()
         run: |
           python - << 'PY'
           import os
