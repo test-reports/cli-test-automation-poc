@@ -15,9 +15,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Log trigger
-        run: echo "Workflow triggered via ${{ github.event_name }}"
-
       - name: Log trigger context
         run: |
           echo "::group::Trigger context (CI - Smoke Tests)"
