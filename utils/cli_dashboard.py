@@ -21,6 +21,7 @@ import html
 import re
 from pathlib import Path
 from typing import Dict, Optional
+from datetime import datetime
 
 
 def _infer_counts(report_html: str) -> Dict[str, int]:
@@ -118,6 +119,11 @@ def build_dashboard(report_path: Path, output_dir: Path) -> Path:
     counts = _infer_counts(text)
     title = _extract_title(text)
 
+    # Timestamp similar to Product Catalog API dashboard
+    now = datetime.now()
+    run_date = now.strftime("%Y-%m-%d")
+    timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
+
     passed = counts["passed"]
     failed = counts["failed"]
     error = counts["error"]
@@ -180,7 +186,8 @@ def build_dashboard(report_path: Path, output_dir: Path) -> Path:
       <header class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 class="text-2xl font-semibold tracking-tight">CLI Test Dashboard</h1>
-          <p class="text-sm text-slate-400">Summary view generated from pytest HTML report.</p>
+          <p class="text-sm text-slate-400 mt-1">Run date: {run_date} · {timestamp}</p>
+          <p class="text-xs text-slate-500 mt-1">Summary view generated from pytest HTML report.</p>
         </div>
         <a
           href="../reports/report.html"
