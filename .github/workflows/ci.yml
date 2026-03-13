@@ -23,12 +23,12 @@ jobs:
       - name: Run tests
         run: |
           mkdir -p reports
-          .venv/bin/pytest -v --tb=short --html=reports/report.html --self-contained-html
+          .venv/bin/pytest -v --tb=short --junitxml=reports/junit.xml
 
       - name: Generate CLI HTML dashboard
         run: |
           .venv/bin/python -m utils.cli_dashboard \
-            --report-path reports/report.html \
+            --junit-path reports/junit.xml \
             --output-dir dashboard
 
       - name: Push dashboard to test-dashboard branch
@@ -70,14 +70,13 @@ jobs:
           python - << 'PY'
           import os
           from pathlib import Path
-          from utils.cli_dashboard import _infer_counts
+          from utils.cli_dashboard import summarize_junit
 
-          report = Path("reports/report.html")
-          if not report.is_file():
-              raise SystemExit("reports/report.html not found; cannot build dashboard summary.")
+          junit = Path("reports/junit.xml")
+          if not junit.is_file():
+              raise SystemExit("reports/junit.xml not found; cannot build dashboard summary.")
 
-          html = report.read_text(encoding="utf-8", errors="ignore")
-          counts = _infer_counts(html)
+          counts = summarize_junit(junit)
 
           passed = counts.get("passed", 0)
           failed = counts.get("failed", 0)

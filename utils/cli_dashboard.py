@@ -4,220 +4,105 @@ The dashboard is a single self-contained HTML file with:
 - Tailwind CSS (via CDN) for layout and styling
 - Chart.js (via CDN) for basic charts
 
-It reads a pytest HTML report and derives a very simple summary
-(pass/fail/error/skip counts) using string heuristics. This keeps the
-generator independent from pytest internals and plugins.
+It reads a JUnit XML report and derives summary + individual test rows.
+This avoids scraping pytest-html and mirrors the Product Catalog API
+dashboard approach (structured data first, then HTML).
 
 Intended usage from CI:
-- After pytest generates reports/report.html
-- Call: python -m utils.cli_dashboard --report-path reports/report.html --output-dir public
-- Publish public/ via GitHub Pages.
+- After pytest generates reports/junit.xml (via --junitxml)
+- Call: python -m utils.cli_dashboard --junit-path reports/junit.xml --output-dir dashboard
+- Publish dashboard/ via GitHub Pages.
 """
 
 from __future__ import annotations
 
 import argparse
 import html
-import re
 from pathlib import Path
-from typing import Dict, Optional, List, Tuple
+from typing import Dict, List, Tuple
 from datetime import datetime
 from zoneinfo import ZoneInfo
+import xml.etree.ElementTree as ET
 
 
-def _infer_counts(report_html: str) -> Dict[str, int]:
-    """Very lightweight heuristic to infer test result counts from pytest-html.
-
-    This is intentionally simple and robust: it just counts common class names
-    for results. It will not be perfect but gives an approximate distribution.
-
-    To reduce confusing mismatches (e.g. dashboard says 9 tests when pytest
-    summary shows a different number), we also try to parse the pytest
-    summary line (``X passed, Y failed, Z skipped in Ns``). If that summary
-    is present and disagrees with the class-name heuristic, we prefer the
-    summary counts and mark the result as ``summary_inconsistent=True`` so
-    the dashboard can flag it.
-    """
-    lowered = report_html.lower()
-
-    # Try to read counts from the pytest summary line first.
-    summary_counts: Optional[Dict[str, int]] = None
-    summary_total = 0
-    summary_match = re.search(
-        r"(?:===\s*)?"
-        r"(?P<passed>\d+)\s+passed"
-        r"(?:,\s*(?P<failed>\d+)\s+failed)?"
-        r"(?:,\s*(?P<error>\d+)\s+error[s]?)?"
-        r"(?:,\s*(?P<skipped>\d+)\s+skipped)?"
-        r"(?:\s+in\s+[\d\.]+s)?"
-        r"(?:\s*===)?",
-        lowered,
+def _escape_html(s: str) -> str:
+    if not s:
+        return ""
+    return (
+        s.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
     )
-    if summary_match:
-        summary_counts = {
-            "passed": int(summary_match.group("passed") or 0),
-            "failed": int(summary_match.group("failed") or 0),
-            "error": int(summary_match.group("error") or 0),
-            "skipped": int(summary_match.group("skipped") or 0),
-        }
-        summary_total = (
-            summary_counts["passed"]
-            + summary_counts["failed"]
-            + summary_counts["error"]
-            + summary_counts["skipped"]
-        )
-
-    # Count tests by table rows, not raw string occurrences, to avoid
-    # over-counting (e.g. summary tables, legends, or multiple class attributes).
-    def count_rows(status: str) -> int:
-        # Match <tr ... class="...status...">
-        pattern = rf"<tr[^>]+class=\"[^\"]*{status}[^\"]*\""
-        return len(re.findall(pattern, lowered))
-
-    passed = count_rows("passed")
-    failed = count_rows("failed")
-    error = count_rows("error")
-    skipped = count_rows("skipped")
-
-    raw_total = passed + failed + error + skipped
-
-    # If we have a trustworthy pytest summary and it disagrees with the raw
-    # HTML heuristic (common when some rows are hidden/filtered), prefer the
-    # summary numbers and flag the inconsistency so the UI can surface it.
-    summary_inconsistent = False
-    if summary_counts and summary_total:
-        if summary_total != raw_total:
-            summary_inconsistent = True
-            passed = summary_counts["passed"]
-            failed = summary_counts["failed"]
-            error = summary_counts["error"]
-            skipped = summary_counts["skipped"]
-            total = summary_total
-        else:
-            total = raw_total
-    else:
-        total = raw_total
-
-    return {
-        "passed": passed,
-        "failed": failed,
-        "error": error,
-        "skipped": skipped,
-        "total": total,
-        "raw_total": raw_total,
-        "summary_total": summary_total or raw_total,
-        "summary_inconsistent": summary_inconsistent,
-    }
 
 
-def _extract_title(report_html: str) -> str:
-    """Extract a title from the pytest HTML report or fall back to default."""
-    m = re.search(r"<title>(.*?)</title>", report_html, flags=re.IGNORECASE | re.DOTALL)
-    if not m:
-        return "CLI Test Dashboard"
-    return html.escape(m.group(1).strip() or "CLI Test Dashboard")
+def _parse_junit(junit_path: Path) -> Tuple[Dict[str, int], List[Tuple[str, str, str]]]:
+    """Parse a JUnit XML report into counts and test rows.
 
-
-def _extract_tests(report_html: str) -> List[Tuple[str, str, str]]:
-    """Best-effort extraction of individual test rows from pytest HTML.
-
-    Returns a list of (label, status, badge_class) similar to the
-    Product Catalog API dashboard's test table.
-
-    Primary strategy (pytest-html >= 3):
-    - Use the main results table structure:
-      - test name in <td class="col-name">...</td>
-      - status   in <td class="col-result">Passed/Failed/Skipped/Error</td>
-
-    Fallback (older templates):
-    - Look for <tr ... class="...passed|failed|error|skipped..."> and
-      use the first <td> as the label.
+    Returns:
+        (counts, rows) where:
+          counts = {passed, failed, error, skipped, total}
+          rows   = list of (label, status, badge_class)
     """
+    tree = ET.parse(junit_path)
+    root = tree.getroot()
+
+    testcases = root.findall(".//testcase")
+
+    counts = {
+        "passed": 0,
+        "failed": 0,
+        "error": 0,
+        "skipped": 0,
+        "total": 0,
+    }
     rows: List[Tuple[str, str, str]] = []
 
-    def _strip_tags(s: str) -> str:
-        s = re.sub(r"<[^>]+>", "", s)
-        return html.escape(s.strip())
-
-    # --- Primary strategy: pytest-html results table (col-name / col-result) ---
-    # Accept both single and double quotes for class attributes.
-    row_pattern = re.compile(
-        r"<tr[^>]*>.*?<td[^>]*class=['\"][^'\"]*col-name[^'\"]*['\"][^>]*>(?P<name>.*?)</td>.*?"
-        r"<td[^>]*class=['\"][^'\"]*col-result[^'\"]*['\"][^>]*>(?P<result>.*?)</td>.*?</tr>",
-        re.IGNORECASE | re.DOTALL,
-    )
-    def _status_to_badge(status_text: str) -> Tuple[str, str]:
-        st = status_text.strip().lower()
-        if st == "passed":
+    def status_badge(tag: str) -> Tuple[str, str]:
+        t = tag.lower()
+        if t == "passed":
             return "Passed", "bg-emerald-500/20 text-emerald-400 border border-emerald-500/50"
-        if st == "failed":
+        if t == "failed":
             return "Failed", "bg-rose-500/20 text-rose-400 border border-rose-500/50"
-        if st == "error":
+        if t == "error":
             return "Error", "bg-amber-500/20 text-amber-300 border border-amber-500/50"
-        if st == "skipped":
+        if t == "skipped":
             return "Skipped", "bg-slate-500/20 text-slate-300 border border-slate-500/50"
         return "", ""
 
-    for m in row_pattern.finditer(report_html):
-        raw_label = m.group("name")
-        label = _strip_tags(raw_label)
-        if not label:
-            continue
+    for tc in testcases:
+        classname = tc.get("classname", "") or ""
+        name = tc.get("name", "") or ""
+        label = f"{classname}::{name}" if classname else name
+        label = _escape_html(label)
 
-        raw_status = _strip_tags(m.group("result"))
-        status, badge_class = _status_to_badge(raw_status)
-        if not status:
-            continue
+        status = "passed"
+        if tc.find("failure") is not None:
+            status = "failed"
+        elif tc.find("error") is not None:
+            status = "error"
+        elif tc.find("skipped") is not None:
+            status = "skipped"
 
-        rows.append((label, status, badge_class))
+        status_label, badge = status_badge(status)
+        counts[status] += 1
+        counts["total"] += 1
 
-    if rows:
-        return rows
+        rows.append((label, status_label, badge))
 
-    # --- Fallback: older templates using row classes with status names ---
-    fallback_row_pattern = re.compile(
-        r"<tr[^>]*class=\"([^\"]*(?:passed|failed|error|skipped)[^\"]*)\"[^>]*>(.*?)</tr>",
-        re.IGNORECASE | re.DOTALL,
-    )
-    any_cell_pattern = re.compile(r"<td[^>]*>(.*?)</td>", re.IGNORECASE | re.DOTALL)
-
-    for m in fallback_row_pattern.finditer(report_html):
-        classes = m.group(1).lower()
-        row_html = m.group(2)
-
-        if "passed" in classes:
-            status = "Passed"
-            badge_class = "bg-emerald-500/20 text-emerald-400 border border-emerald-500/50"
-        elif "failed" in classes:
-            status = "Failed"
-            badge_class = "bg-rose-500/20 text-rose-400 border border-rose-500/50"
-        elif "error" in classes:
-            status = "Error"
-            badge_class = "bg-amber-500/20 text-amber-300 border border-amber-500/50"
-        elif "skipped" in classes:
-            status = "Skipped"
-            badge_class = "bg-slate-500/20 text-slate-300 border border-slate-500/50"
-        else:
-            continue
-
-        cell_match = any_cell_pattern.search(row_html)
-        if not cell_match:
-            continue
-        raw_label = cell_match.group(1)
-        label = _strip_tags(raw_label)
-        if not label:
-            continue
-
-        rows.append((label, status, badge_class))
-
-    return rows
+    return counts, rows
 
 
-def build_dashboard(report_path: Path, output_dir: Path) -> Path:
-    """Build a static Tailwind + Chart.js dashboard HTML."""
-    text = report_path.read_text(encoding="utf-8", errors="ignore")
-    counts = _infer_counts(text)
-    title = _extract_title(text)
+def summarize_junit(junit_path: Path) -> Dict[str, int]:
+    """Return only aggregate counts from a JUnit XML report."""
+    counts, _ = _parse_junit(junit_path)
+    return counts
+
+
+def build_dashboard(junit_path: Path, output_dir: Path) -> Path:
+    """Build a static Tailwind + Chart.js dashboard HTML from JUnit XML."""
+    counts, test_rows = _parse_junit(junit_path)
+    title = "CLI Test Dashboard"
 
     # Timestamp similar to Product Catalog API dashboard, pinned to LA time (PST/PDT)
     la_tz = ZoneInfo("America/Los_Angeles")
@@ -232,17 +117,7 @@ def build_dashboard(report_path: Path, output_dir: Path) -> Path:
     total = counts["total"] or 1  # avoid div/0
     pass_rate = round(100.0 * passed / total, 1)
 
-    inconsistency_banner = ""
-    if counts.get("summary_inconsistent"):
-        inconsistency_banner = """
-      <div class="mb-4 rounded-lg border border-amber-400/40 bg-amber-500/5 px-4 py-3 text-sm text-amber-200">
-        Detected a mismatch between the pytest summary line and the HTML table counts.
-        Numbers below use the pytest summary, which is usually more accurate.
-      </div>
-    """
-
     # Extract individual tests similar to Product Catalog API dashboard
-    test_rows = _extract_tests(text)
     if test_rows:
         table_rows_html_parts: List[str] = []
         for idx, (label, status, badge_class) in enumerate(test_rows, start=1):
@@ -312,12 +187,6 @@ def build_dashboard(report_path: Path, output_dir: Path) -> Path:
           <p class="text-sm text-slate-400 mt-1">Run date: {run_date} · {timestamp}</p>
           <p class="text-xs text-slate-500 mt-1">Summary view generated from pytest HTML report.</p>
         </div>
-        <a
-          href="../reports/report.html"
-          class="inline-flex items-center px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-sm font-medium border border-slate-700 transition"
-        >
-          View raw pytest HTML report
-        </a>
       </header>
       {inconsistency_banner}
 
@@ -422,8 +291,8 @@ def build_dashboard(report_path: Path, output_dir: Path) -> Path:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate CLI test dashboard HTML from pytest report.")
-    parser.add_argument("--report-path", type=Path, required=True, help="Path to pytest HTML report.")
+    parser = argparse.ArgumentParser(description="Generate CLI test dashboard HTML from JUnit XML.")
+    parser.add_argument("--junit-path", type=Path, required=True, help="Path to JUnit XML report.")
     parser.add_argument(
         "--output-dir",
         type=Path,
@@ -432,10 +301,10 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    if not args.report_path.is_file():
-        raise SystemExit(f"Report path does not exist or is not a file: {args.report_path}")
+    if not args.junit_path.is_file():
+        raise SystemExit(f"JUnit path does not exist or is not a file: {args.junit_path}")
 
-    out = build_dashboard(args.report_path, args.output_dir)
+    out = build_dashboard(args.junit_path, args.output_dir)
     print(f"Dashboard written to {out}")
 
 
