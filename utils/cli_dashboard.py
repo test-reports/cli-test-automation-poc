@@ -114,6 +114,18 @@ def summarize_junit(junit_path: Path) -> Dict[str, int]:
 def build_dashboard(junit_path: Path, output_dir: Path) -> Path:
     """Build a static Tailwind + Chart.js dashboard HTML from JUnit XML."""
     counts, test_rows = _parse_junit(junit_path)
+
+    # Sort so failing tests appear at the top: Failed/Error first, then Skipped, then Passed
+    def _sort_key(row: Tuple[str, str, str, str]) -> Tuple[int, str]:
+        label, status, _, _ = row
+        if status == "Failed" or status == "Error":
+            return (0, label)
+        if status == "Skipped":
+            return (1, label)
+        return (2, label)
+
+    test_rows = sorted(test_rows, key=_sort_key)
+
     title = "CLI Test Dashboard"
 
     # Timestamp similar to Product Catalog API dashboard, pinned to LA time (PST/PDT)
