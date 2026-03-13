@@ -20,16 +20,50 @@ import argparse
 import html
 import re
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
 
 def _infer_counts(report_html: str) -> Dict[str, int]:
     """Very lightweight heuristic to infer test result counts from pytest-html.
 
-This is intentionally simple and robust: it just counts common class names
-for results. It will not be perfect but gives an approximate distribution.
-"""
+    This is intentionally simple and robust: it just counts common class names
+    for results. It will not be perfect but gives an approximate distribution.
+
+    To reduce confusing mismatches (e.g. dashboard says 9 tests when pytest
+    summary shows a different number), we also try to parse the pytest
+    summary line (``X passed, Y failed, Z skipped in Ns``). If that summary
+    is present and disagrees with the class-name heuristic, we prefer the
+    summary counts and mark the result as ``summary_inconsistent=True`` so
+    the dashboard can flag it.
+    """
     lowered = report_html.lower()
+
+    # Try to read counts from the pytest summary line first.
+    summary_counts: Optional[Dict[str, int]] = None
+    summary_total = 0
+    summary_match = re.search(
+        r"(?:===\s*)?"
+        r"(?P<passed>\d+)\s+passed"
+        r"(?:,\s*(?P<failed>\d+)\s+failed)?"
+        r"(?:,\s*(?P<error>\d+)\s+error[s]?)?"
+        r"(?:,\s*(?P<skipped>\d+)\s+skipped)?"
+        r"(?:\s+in\s+[\d\.]+s)?"
+        r"(?:\s*===)?",
+        lowered,
+    )
+    if summary_match:
+        summary_counts = {
+            "passed": int(summary_match.group("passed") or 0),
+            "failed": int(summary_match.group("failed") or 0),
+            "error": int(summary_match.group("error") or 0),
+            "skipped": int(summary_match.group("skipped") or 0),
+        }
+        summary_total = (
+            summary_counts["passed"]
+            + summary_counts["failed"]
+            + summary_counts["error"]
+            + summary_counts["skipped"]
+        )
 
     def count_any(markers):
         return sum(lowered.count(m) for m in markers)
@@ -39,13 +73,34 @@ for results. It will not be perfect but gives an approximate distribution.
     error = count_any(['class="error"', "class='error'", "data-test-result=\"error\""])
     skipped = count_any(['class="skipped"', "class='skipped'", "data-test-result=\"skipped\""])
 
-    total = passed + failed + error + skipped
+    raw_total = passed + failed + error + skipped
+
+    # If we have a trustworthy pytest summary and it disagrees with the raw
+    # HTML heuristic (common when some rows are hidden/filtered), prefer the
+    # summary numbers and flag the inconsistency so the UI can surface it.
+    summary_inconsistent = False
+    if summary_counts and summary_total:
+        if summary_total != raw_total:
+            summary_inconsistent = True
+            passed = summary_counts["passed"]
+            failed = summary_counts["failed"]
+            error = summary_counts["error"]
+            skipped = summary_counts["skipped"]
+            total = summary_total
+        else:
+            total = raw_total
+    else:
+        total = raw_total
+
     return {
         "passed": passed,
         "failed": failed,
         "error": error,
         "skipped": skipped,
         "total": total,
+        "raw_total": raw_total,
+        "summary_total": summary_total or raw_total,
+        "summary_inconsistent": summary_inconsistent,
     }
 
 
@@ -69,6 +124,15 @@ def build_dashboard(report_path: Path, output_dir: Path) -> Path:
     skipped = counts["skipped"]
     total = counts["total"] or 1  # avoid div/0
     pass_rate = round(100.0 * passed / total, 1)
+
+    inconsistency_banner = ""
+    if counts.get("summary_inconsistent"):
+        inconsistency_banner = """
+      <div class="mb-4 rounded-lg border border-amber-400/40 bg-amber-500/5 px-4 py-3 text-sm text-amber-200">
+        Detected a mismatch between the pytest summary line and the HTML table counts.
+        Numbers below use the pytest summary, which is usually more accurate.
+      </div>
+    """
 
     output_dir.mkdir(parents=True, exist_ok=True)
     out_path = output_dir / "index.html"
@@ -125,6 +189,7 @@ def build_dashboard(report_path: Path, output_dir: Path) -> Path:
           View raw pytest HTML report
         </a>
       </header>
+      {inconsistency_banner}
 
       <section class="grid gap-4 md:grid-cols-4 mb-8">
         <div class="bg-surface rounded-xl border border-slate-800 p-4">
