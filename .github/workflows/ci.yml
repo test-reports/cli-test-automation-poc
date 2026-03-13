@@ -51,8 +51,8 @@ jobs:
             git worktree add -B "${DASHBOARD_BRANCH}" "${WORKTREE_DIR}"
           fi
 
-          # Sync generated dashboard into the worktree
-          rsync -a --delete dashboard/ "${WORKTREE_DIR}/"
+          # Sync generated dashboard into the worktree (preserve .git)
+          rsync -a --delete --exclude='.git' dashboard/ "${WORKTREE_DIR}/"
 
           cd "${WORKTREE_DIR}"
           git add .
