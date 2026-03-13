@@ -7,7 +7,7 @@ on:
     branches: [poc-cli-tests]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   test:
@@ -24,6 +24,44 @@ jobs:
         run: |
           mkdir -p reports
           .venv/bin/pytest -v --tb=short --html=reports/report.html --self-contained-html
+
+      - name: Generate CLI HTML dashboard
+        run: |
+          .venv/bin/python -m utils.cli_dashboard \
+            --report-path reports/report.html \
+            --output-dir dashboard
+
+      - name: Push dashboard to test-dashboard branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DASHBOARD_BRANCH: test-dashboard
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Ensure full history so we can create/update the dashboard branch
+          git fetch origin --prune
+
+          # Create a worktree for the dashboard branch
+          WORKTREE_DIR="$(mktemp -d)"
+          if git show-ref --verify --quiet "refs/remotes/origin/${DASHBOARD_BRANCH}"; then
+            git worktree add "${WORKTREE_DIR}" "origin/${DASHBOARD_BRANCH}"
+          else
+            git worktree add -B "${DASHBOARD_BRANCH}" "${WORKTREE_DIR}"
+          fi
+
+          # Sync generated dashboard into the worktree
+          rsync -a --delete dashboard/ "${WORKTREE_DIR}/"
+
+          cd "${WORKTREE_DIR}"
+          git add .
+          if git diff --cached --quiet; then
+            echo "No dashboard changes to commit."
+          else
+            git commit -m "Update CLI dashboard for run ${GITHUB_RUN_ID}"
+            git push origin "${DASHBOARD_BRANCH}"
+          fi
 
       - name: Write CLI test dashboard summary
         run: |
