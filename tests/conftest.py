@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-# Load local env (e.g. RP_API_KEY) from config/local.env if present; file is gitignored
+# Load local env (RP_API_KEY etc.) from config/local.env if present; CI uses GitHub secret RP_API_KEY
 _local_env = Path(__file__).resolve().parent.parent / "config" / "local.env"
 if _local_env.exists():
     from dotenv import load_dotenv

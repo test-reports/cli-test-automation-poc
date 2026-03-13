@@ -33,7 +33,7 @@ class ReportPortalIntegration:
         self.api_key = api_key or os.getenv("RP_API_KEY")
         self.endpoint = endpoint or os.getenv("RP_ENDPOINT", "https://btnreport.com")
         self.project = project or os.getenv("RP_PROJECT", "superadmin_personal")
-        self.launch_name = launch_name or os.getenv("RP_LAUNCH", "Test Launch")
+        self.launch_name = launch_name or os.getenv("RP_LAUNCH", "CLI_Test_Launch")
 
     def is_enabled(self) -> bool:
         """
@@ -79,10 +79,10 @@ class ReportPortalIntegration:
             ReportPortal launch name
         """
         launch_mapping = {
-            "api": "CLI_POC_Launch",
-            "all-api": "CLI_POC_Launch",
+            "api": "CLI_API_Launch",
+            "all-api": "CLI_API_Launch",
         }
-        return launch_mapping.get(test_type, "CLI_POC_Launch")
+        return launch_mapping.get(test_type, "CLI_Test_Launch")
 
     def get_retry_launch_name(self, test_type: str) -> str:
         """
