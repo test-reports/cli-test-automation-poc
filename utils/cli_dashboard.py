@@ -22,6 +22,7 @@ import re
 from pathlib import Path
 from typing import Dict, Optional, List, Tuple
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 
 def _infer_counts(report_html: str) -> Dict[str, int]:
@@ -121,30 +122,82 @@ def _extract_tests(report_html: str) -> List[Tuple[str, str, str]]:
     """Best-effort extraction of individual test rows from pytest HTML.
 
     Returns a list of (label, status, badge_class) similar to the
-    Product Catalog API dashboard's test table. This is heuristic and
-    may not capture all variations of pytest-html output, but it gives
-    a concrete test list when possible.
+    Product Catalog API dashboard's test table.
+
+    Primary strategy (pytest-html >= 3):
+    - Use the main results table structure:
+      - test name in <td class="col-name">...</td>
+      - status   in <td class="col-result">Passed/Failed/Skipped/Error</td>
+
+    Fallback (older templates):
+    - Look for <tr ... class="...passed|failed|error|skipped..."> and
+      use the first <td> as the label.
     """
     rows: List[Tuple[str, str, str]] = []
-
-    # Match table rows whose class contains a result status
-    row_pattern = re.compile(
-        r"<tr[^>]*class=\"([^\"]*(?:passed|failed|error|skipped)[^\"]*)\"[^>]*>(.*?)</tr>",
-        re.IGNORECASE | re.DOTALL,
-    )
-    # First <td> in the row is typically the test name / nodeid
-    cell_pattern = re.compile(r"<td[^>]*>(.*?)</td>", re.IGNORECASE | re.DOTALL)
 
     def _strip_tags(s: str) -> str:
         s = re.sub(r"<[^>]+>", "", s)
         return html.escape(s.strip())
 
+    # --- Primary strategy: pytest-html results table (col-name / col-result) ---
+    row_pattern = re.compile(
+        r"<tr[^>]*>(.*?)</tr>",
+        re.IGNORECASE | re.DOTALL,
+    )
+    name_cell_pattern = re.compile(
+        r'<td[^>]*class="[^"]*col-name[^"]*"[^>]*>(.*?)</td>',
+        re.IGNORECASE | re.DOTALL,
+    )
+    result_cell_pattern = re.compile(
+        r'<td[^>]*class="[^"]*col-result[^"]*"[^>]*>(.*?)</td>',
+        re.IGNORECASE | re.DOTALL,
+    )
+
+    def _status_to_badge(status_text: str) -> Tuple[str, str]:
+        st = status_text.strip().lower()
+        if st == "passed":
+            return "Passed", "bg-emerald-500/20 text-emerald-400 border border-emerald-500/50"
+        if st == "failed":
+            return "Failed", "bg-rose-500/20 text-rose-400 border border-rose-500/50"
+        if st == "error":
+            return "Error", "bg-amber-500/20 text-amber-300 border border-amber-500/50"
+        if st == "skipped":
+            return "Skipped", "bg-slate-500/20 text-slate-300 border border-slate-500/50"
+        return "", ""
+
     for m in row_pattern.finditer(report_html):
+        row_html = m.group(1)
+        name_match = name_cell_pattern.search(row_html)
+        result_match = result_cell_pattern.search(row_html)
+        if not (name_match and result_match):
+            continue
+
+        raw_label = name_match.group(1)
+        label = _strip_tags(raw_label)
+        if not label:
+            continue
+
+        raw_status = _strip_tags(result_match.group(1))
+        status, badge_class = _status_to_badge(raw_status)
+        if not status:
+            continue
+
+        rows.append((label, status, badge_class))
+
+    if rows:
+        return rows
+
+    # --- Fallback: older templates using row classes with status names ---
+    fallback_row_pattern = re.compile(
+        r"<tr[^>]*class=\"([^\"]*(?:passed|failed|error|skipped)[^\"]*)\"[^>]*>(.*?)</tr>",
+        re.IGNORECASE | re.DOTALL,
+    )
+    any_cell_pattern = re.compile(r"<td[^>]*>(.*?)</td>", re.IGNORECASE | re.DOTALL)
+
+    for m in fallback_row_pattern.finditer(report_html):
         classes = m.group(1).lower()
         row_html = m.group(2)
 
-        status: str
-        badge_class: str
         if "passed" in classes:
             status = "Passed"
             badge_class = "bg-emerald-500/20 text-emerald-400 border border-emerald-500/50"
@@ -160,7 +213,7 @@ def _extract_tests(report_html: str) -> List[Tuple[str, str, str]]:
         else:
             continue
 
-        cell_match = cell_pattern.search(row_html)
+        cell_match = any_cell_pattern.search(row_html)
         if not cell_match:
             continue
         raw_label = cell_match.group(1)
@@ -179,10 +232,11 @@ def build_dashboard(report_path: Path, output_dir: Path) -> Path:
     counts = _infer_counts(text)
     title = _extract_title(text)
 
-    # Timestamp similar to Product Catalog API dashboard
-    now = datetime.now()
+    # Timestamp similar to Product Catalog API dashboard, pinned to LA time (PST/PDT)
+    la_tz = ZoneInfo("America/Los_Angeles")
+    now = datetime.now(tz=la_tz)
     run_date = now.strftime("%Y-%m-%d")
-    timestamp = now.strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = now.strftime("%Y-%m-%d %H:%M:%S %Z")
 
     passed = counts["passed"]
     failed = counts["failed"]
