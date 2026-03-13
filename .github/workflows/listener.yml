@@ -40,8 +40,10 @@ jobs:
         run: |
           mkdir -p reports
           if [ -n "$RP_API_KEY" ]; then
+            echo "::notice::Report Portal: enabled (RP_API_KEY set)"
             pytest -v --tb=short --html=reports/report.html --self-contained-html --reportportal
           else
+            echo "::notice::Report Portal: skipped (no RP_API_KEY secret)"
             pytest -v --tb=short --html=reports/report.html --self-contained-html
           fi
 
