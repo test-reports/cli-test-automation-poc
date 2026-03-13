@@ -99,15 +99,36 @@ pip install -r requirements.txt
 
 ### 4. Run tests locally
 
+**Run all tests and write JUnit XML:**
+
 ```bash
+mkdir -p reports
 pytest -v --tb=short --junitxml=reports/junit.xml
 ```
 
-Then generate the HTML dashboard locally (optional, mirrors CI):
+**Run only smoke tests (5 tests):**
+
+```bash
+pytest -v --tb=short -m smoke --junitxml=reports/junit.xml
+```
+
+**Run full regression (all tests):**
+
+```bash
+pytest -v --tb=short -m regression --junitxml=reports/junit.xml
+```
+
+**Generate HTML dashboard from JUnit report:**
 
 ```bash
 python -m utils.cli_dashboard --junit-path reports/junit.xml --output-dir dashboard
 # Open dashboard/index.html in your browser
+```
+
+**One-liner: run tests, then generate dashboard:**
+
+```bash
+mkdir -p reports && pytest -v --tb=short --junitxml=reports/junit.xml && python -m utils.cli_dashboard --junit-path reports/junit.xml --output-dir dashboard
 ```
 
 ### 5. Commit and push (triggers the GitHub Actions workflow)
