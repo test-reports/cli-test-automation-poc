@@ -70,3 +70,5 @@ config/local.env
 
 # Self-hosted runner (binaries, credentials, state — not needed for GitHub; add via Settings → Actions → Runners)
 actions-runner/
+scripts/runner-svc.sh
+scripts/runner-start.sh
