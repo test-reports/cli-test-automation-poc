@@ -66,13 +66,17 @@ def _infer_counts(report_html: str) -> Dict[str, int]:
             + summary_counts["skipped"]
         )
 
-    def count_any(markers):
-        return sum(lowered.count(m) for m in markers)
+    # Count tests by table rows, not raw string occurrences, to avoid
+    # over-counting (e.g. summary tables, legends, or multiple class attributes).
+    def count_rows(status: str) -> int:
+        # Match <tr ... class="...status...">
+        pattern = rf"<tr[^>]+class=\"[^\"]*{status}[^\"]*\""
+        return len(re.findall(pattern, lowered))
 
-    passed = count_any(['class="passed"', "class='passed'", "data-test-result=\"passed\""])
-    failed = count_any(['class="failed"', "class='failed'", "data-test-result=\"failed\""])
-    error = count_any(['class="error"', "class='error'", "data-test-result=\"error\""])
-    skipped = count_any(['class="skipped"', "class='skipped'", "data-test-result=\"skipped\""])
+    passed = count_rows("passed")
+    failed = count_rows("failed")
+    error = count_rows("error")
+    skipped = count_rows("skipped")
 
     raw_total = passed + failed + error + skipped
 
