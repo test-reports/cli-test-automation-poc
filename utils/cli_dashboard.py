@@ -20,7 +20,7 @@ import argparse
 import html
 import re
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, List, Tuple
 from datetime import datetime
 
 
@@ -113,6 +113,62 @@ def _extract_title(report_html: str) -> str:
     return html.escape(m.group(1).strip() or "CLI Test Dashboard")
 
 
+def _extract_tests(report_html: str) -> List[Tuple[str, str, str]]:
+    """Best-effort extraction of individual test rows from pytest HTML.
+
+    Returns a list of (label, status, badge_class) similar to the
+    Product Catalog API dashboard's test table. This is heuristic and
+    may not capture all variations of pytest-html output, but it gives
+    a concrete test list when possible.
+    """
+    rows: List[Tuple[str, str, str]] = []
+
+    # Match table rows whose class contains a result status
+    row_pattern = re.compile(
+        r"<tr[^>]*class=\"([^\"]*(?:passed|failed|error|skipped)[^\"]*)\"[^>]*>(.*?)</tr>",
+        re.IGNORECASE | re.DOTALL,
+    )
+    # First <td> in the row is typically the test name / nodeid
+    cell_pattern = re.compile(r"<td[^>]*>(.*?)</td>", re.IGNORECASE | re.DOTALL)
+
+    def _strip_tags(s: str) -> str:
+        s = re.sub(r"<[^>]+>", "", s)
+        return html.escape(s.strip())
+
+    for m in row_pattern.finditer(report_html):
+        classes = m.group(1).lower()
+        row_html = m.group(2)
+
+        status: str
+        badge_class: str
+        if "passed" in classes:
+            status = "Passed"
+            badge_class = "bg-emerald-500/20 text-emerald-400 border border-emerald-500/50"
+        elif "failed" in classes:
+            status = "Failed"
+            badge_class = "bg-rose-500/20 text-rose-400 border border-rose-500/50"
+        elif "error" in classes:
+            status = "Error"
+            badge_class = "bg-amber-500/20 text-amber-300 border border-amber-500/50"
+        elif "skipped" in classes:
+            status = "Skipped"
+            badge_class = "bg-slate-500/20 text-slate-300 border border-slate-500/50"
+        else:
+            continue
+
+        cell_match = cell_pattern.search(row_html)
+        if not cell_match:
+            continue
+        raw_label = cell_match.group(1)
+        label = _strip_tags(raw_label)
+        if not label:
+            continue
+
+        rows.append((label, status, badge_class))
+
+    return rows
+
+
 def build_dashboard(report_path: Path, output_dir: Path) -> Path:
     """Build a static Tailwind + Chart.js dashboard HTML."""
     text = report_path.read_text(encoding="utf-8", errors="ignore")
@@ -139,6 +195,28 @@ def build_dashboard(report_path: Path, output_dir: Path) -> Path:
         Numbers below use the pytest summary, which is usually more accurate.
       </div>
     """
+
+    # Extract individual tests similar to Product Catalog API dashboard
+    test_rows = _extract_tests(text)
+    if test_rows:
+        table_rows_html_parts: List[str] = []
+        for idx, (label, status, badge_class) in enumerate(test_rows, start=1):
+            table_rows_html_parts.append(
+                f'<tr class="border-b border-slate-800 hover:bg-slate-800/40">'
+                f'<td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">{idx}</td>'
+                f'<td class="py-3 px-3 text-sm text-slate-200">{label}</td>'
+                f'<td class="py-3 px-3 text-sm">'
+                f'<span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium {badge_class}">{status}</span>'
+                f"</td>"
+                f"</tr>"
+            )
+        tests_table_html = "\n".join(table_rows_html_parts)
+    else:
+        tests_table_html = (
+            '<tr><td colspan="3" class="py-4 px-3 text-sm text-slate-500">'
+            "No individual test rows could be extracted from the pytest HTML report."
+            "</td></tr>"
+        )
 
     output_dir.mkdir(parents=True, exist_ok=True)
     out_path = output_dir / "index.html"
@@ -236,6 +314,24 @@ def build_dashboard(report_path: Path, output_dir: Path) -> Path:
             <li><span class="text-slate-400">Error:</span> {error}</li>
             <li><span class="text-slate-400">Skipped:</span> {skipped}</li>
           </ul>
+        </div>
+      </section>
+
+      <section class="mt-8 bg-surface rounded-xl border border-slate-800 p-4">
+        <h2 class="text-sm font-semibold mb-3">All tests</h2>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-left text-sm">
+            <thead>
+              <tr class="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-500">
+                <th class="py-2 px-3 w-12">#</th>
+                <th class="py-2 px-3">Test</th>
+                <th class="py-2 px-3">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+{tests_table_html}
+            </tbody>
+          </table>
         </div>
       </section>
     </div>
