@@ -41,7 +41,7 @@
       <header class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 class="text-2xl font-semibold tracking-tight">CLI Test Dashboard</h1>
-          <p class="text-sm text-slate-400 mt-1">Run date: 2026-03-13 · 2026-03-13 13:54:20 PDT</p>
+          <p class="text-sm text-slate-400 mt-1">Run date: 2026-03-13 · 2026-03-13 14:07:59 PDT</p>
           <p class="text-xs text-slate-500 mt-1">Summary view generated from JUnit XML report.</p>
         </div>
       </header>
@@ -52,15 +52,15 @@
         </div>
         <div class="bg-surface rounded-xl border border-slate-800 p-4">
           <div class="text-xs uppercase tracking-wide text-slate-400 mb-1">Passed</div>
-          <div class="text-2xl font-semibold text-emerald-400">5</div>
+          <div class="text-2xl font-semibold text-emerald-400">4</div>
         </div>
         <div class="bg-surface rounded-xl border border-slate-800 p-4">
           <div class="text-xs uppercase tracking-wide text-slate-400 mb-1">Failed / Error</div>
-          <div class="text-2xl font-semibold text-rose-400">0</div>
+          <div class="text-2xl font-semibold text-rose-400">1</div>
         </div>
         <div class="bg-surface rounded-xl border border-slate-800 p-4">
           <div class="text-xs uppercase tracking-wide text-slate-400 mb-1">Pass rate</div>
-          <div class="text-2xl font-semibold text-sky-400">100.0%</div>
+          <div class="text-2xl font-semibold text-sky-400">80.0%</div>
         </div>
       </section>
 
@@ -77,8 +77,8 @@
             This dashboard summarizes the latest test run. Counts and test list are derived from the JUnit XML report.
           </p>
           <ul class="mt-4 space-y-1 text-sm text-slate-300">
-            <li><span class="text-slate-400">Passed:</span> 5</li>
-            <li><span class="text-slate-400">Failed:</span> 0</li>
+            <li><span class="text-slate-400">Passed:</span> 4</li>
+            <li><span class="text-slate-400">Failed:</span> 1</li>
             <li><span class="text-slate-400">Error:</span> 0</li>
             <li><span class="text-slate-400">Skipped:</span> 0</li>
           </ul>
@@ -94,14 +94,16 @@
                 <th class="py-2 px-3 w-12">#</th>
                 <th class="py-2 px-3">Test</th>
                 <th class="py-2 px-3">Status</th>
+                <th class="py-2 px-3">Error Message</th>
               </tr>
             </thead>
             <tbody>
-<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">1</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_posts_returns_200</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td></tr>
-<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">2</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_posts_returns_list</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td></tr>
-<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">3</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_single_post_has_expected_keys</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td></tr>
-<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">4</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_users_returns_200</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td></tr>
-<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">5</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_posts_returns_exactly_100_posts</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">1</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_posts_returns_200</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">2</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_posts_returns_list</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">3</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_single_post_has_expected_keys</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">4</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_users_returns_200</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-rose-500/20 text-rose-400 border border-rose-500/50">Failed</span></td><td class="py-3 px-3 text-xs text-slate-300 max-w-md break-words">AssertionError: Expected status 201 for GET /users, got 200
+assert 200 == 201</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">5</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_posts_returns_exactly_100_posts</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
             </tbody>
           </table>
         </div>
@@ -116,7 +118,7 @@
           data: {
             labels: ['Passed', 'Failed', 'Error', 'Skipped'],
             datasets: [{
-              data: [5, 0, 0, 0],
+              data: [4, 1, 0, 0],
               backgroundColor: [
                 '#22c55e',
                 '#fb7185',
