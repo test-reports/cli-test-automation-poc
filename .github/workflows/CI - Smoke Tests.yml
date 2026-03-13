@@ -3,8 +3,8 @@ name: CI - Smoke Tests & Report
 on:
   push:
     branches: [poc-cli-tests]
-  pull_request:
-    branches: [poc-cli-tests]
+  # Any PR (any target branch) triggers CI
+  pull_request: {}
 
 permissions:
   contents: write
