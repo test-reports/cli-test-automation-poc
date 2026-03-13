@@ -63,7 +63,7 @@ Workflows use GitHub-hosted runners (for example `macos-latest`) so no self-host
 
 ## Reports
 
-Generated reports (JUnit XML, HTML, etc.) can be written under `reports/`. Add your preferred pytest plugins (e.g. `pytest-html`, `pytest-junit`) and configure them in `pytest.ini` or `pyproject.toml`.
+Generated reports (JUnit XML, HTML, etc.) can be written under `reports/`. This project’s GitHub Actions workflows generate a JUnit XML file (`reports/junit.xml`) and then build a Tailwind + Chart.js HTML dashboard from it, which is published via GitHub Pages.
 
 ## Complete sequence (Mac terminal)
 
@@ -100,14 +100,14 @@ pip install -r requirements.txt
 ### 4. Run tests locally
 
 ```bash
-pytest -v --tb=short
+pytest -v --tb=short --junitxml=reports/junit.xml
 ```
 
-With HTML report:
+Then generate the HTML dashboard locally (optional, mirrors CI):
 
 ```bash
-mkdir -p reports
-pytest -v --tb=short --html=reports/report.html --self-contained-html
+python -m utils.cli_dashboard --junit-path reports/junit.xml --output-dir dashboard
+# Open dashboard/index.html in your browser
 ```
 
 ### 5. Commit and push (triggers the GitHub Actions workflow)
