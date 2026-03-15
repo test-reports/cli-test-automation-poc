@@ -63,7 +63,7 @@ Workflows use GitHub-hosted runners (for example `macos-latest`) so no self-host
 
 ## Reports
 
-Generated reports (JUnit XML, HTML, etc.) can be written under `reports/`. This project’s GitHub Actions workflows generate a JUnit XML file (`reports/junit.xml`) and then build a Tailwind + Chart.js HTML dashboard from it, which is published via GitHub Pages.
+Generated reports (JUnit XML, HTML, etc.) can be written under `reports/`. This project’s GitHub Actions workflows generate a JUnit XML file (`reports/junit.xml`) and then build a Tailwind + Chart.js HTML dashboard from it, which is published via GitHub Pages. Smoke and regression have separate URLs: **…/smoke/** (PR/push) and **…/regression/** (scheduled); the Pages root links to both.
 
 ## Complete sequence (Mac terminal)
 

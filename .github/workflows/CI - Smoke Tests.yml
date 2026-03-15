@@ -46,7 +46,7 @@ jobs:
             --junit-path reports/junit.xml \
             --output-dir dashboard
 
-      - name: Push dashboard to test-dashboard branch
+      - name: Push dashboard to test-dashboard branch (smoke)
         if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -56,21 +56,19 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Ensure full history so we can create/update the dashboard branch
           git fetch origin --prune
 
-          # Create a worktree for the dashboard branch
           WORKTREE_DIR="$(mktemp -d)"
           if git show-ref --verify --quiet "refs/remotes/origin/${DASHBOARD_BRANCH}"; then
-            # Create/update a local branch tracking origin/DASHBOARD_BRANCH and add worktree on that branch
             git worktree add -B "${DASHBOARD_BRANCH}" "${WORKTREE_DIR}" "origin/${DASHBOARD_BRANCH}"
           else
-            # Create a new local branch from current HEAD
             git worktree add -B "${DASHBOARD_BRANCH}" "${WORKTREE_DIR}"
           fi
 
-          # Sync generated dashboard into the worktree (preserve .git)
-          rsync -a --delete --exclude='.git' dashboard/ "${WORKTREE_DIR}/"
+          mkdir -p "${WORKTREE_DIR}/smoke"
+          rsync -a --delete dashboard/ "${WORKTREE_DIR}/smoke/"
+
+          printf '%s\n' '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>CLI Test Dashboards</title></head><body><h1>CLI Test Dashboards</h1><ul><li><a href="smoke/">Smoke tests</a> (PR / push)</li><li><a href="regression/">Regression tests</a> (scheduled)</li></ul></body></html>' > "${WORKTREE_DIR}/index.html"
 
           cd "${WORKTREE_DIR}"
           git add .
@@ -116,7 +114,8 @@ jobs:
           lines.append(f"- **Skipped**: {skipped}")
           if pages_url:
               lines.append("")
-              lines.append(f"- **GitHub Pages dashboard**: {pages_url}")
+              lines.append(f"- **Smoke dashboard**: {pages_url}smoke/")
+              lines.append(f"- **All dashboards**: {pages_url}")
           lines.append("")
           lines.append("_Smoke tests only. Rendered from `reports/junit.xml`. Generate locally with `pytest -m smoke --junitxml=reports/junit.xml` and `python -m utils.cli_dashboard --junit-path reports/junit.xml --output-dir dashboard`._")
 

@@ -1,11 +1,11 @@
 # Scheduled regression run. Runs on the default branch only (GitHub Actions constraint).
-# 22:17 UTC = 3:17 PM PDT (2:17 PM PST in winter).
+# 17:33 UTC = 10:33 AM PDT (9:33 AM PST in winter).
 name: Scheduled regression
 
 on:
   schedule:
-    # 22:17 UTC = 3:17 PM PDT
-    - cron: '17 22 * * *'
+    # 17:33 UTC = 10:33 AM PDT
+    - cron: '33 17 * * *'
 
 permissions:
   contents: write
@@ -33,7 +33,7 @@ jobs:
             --junit-path reports/junit.xml \
             --output-dir dashboard
 
-      - name: Push dashboard to test-dashboard branch
+      - name: Push dashboard to test-dashboard branch (regression)
         if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -52,7 +52,10 @@ jobs:
             git worktree add -B "${DASHBOARD_BRANCH}" "${WORKTREE_DIR}"
           fi
 
-          rsync -a --delete --exclude='.git' dashboard/ "${WORKTREE_DIR}/"
+          mkdir -p "${WORKTREE_DIR}/regression"
+          rsync -a --delete dashboard/ "${WORKTREE_DIR}/regression/"
+
+          printf '%s\n' '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>CLI Test Dashboards</title></head><body><h1>CLI Test Dashboards</h1><ul><li><a href="smoke/">Smoke tests</a> (PR / push)</li><li><a href="regression/">Regression tests</a> (scheduled)</li></ul></body></html>' > "${WORKTREE_DIR}/index.html"
 
           cd "${WORKTREE_DIR}"
           git add .
@@ -95,7 +98,8 @@ jobs:
           lines.append(f"- **Skipped**: {skipped}")
           if pages_url:
               lines.append("")
-              lines.append(f"- **GitHub Pages dashboard**: {pages_url}")
+              lines.append(f"- **Regression dashboard**: {pages_url}regression/")
+              lines.append(f"- **All dashboards**: {pages_url}")
           lines.append("")
           lines.append("_Scheduled run (regression only). Rendered from `reports/junit.xml`._")
 
