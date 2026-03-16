@@ -5,7 +5,7 @@ import requests
 
 BASE_URL = "https://jsonplaceholder.typicode.com"
 
-
+# Sample change to trigger a new build
 # --- Smoke tests (5 only); regression = all tests ---
 
 @pytest.mark.smoke
