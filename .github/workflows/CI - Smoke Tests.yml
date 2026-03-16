@@ -120,6 +120,7 @@ jobs:
           # GitHub Pages dashboard URL for this repo (project site)
           owner = os.environ.get("GITHUB_REPOSITORY_OWNER") or (os.environ.get("GITHUB_REPOSITORY", "").split("/")[0] if os.environ.get("GITHUB_REPOSITORY") else "")
           pages_url = f"https://{owner}.github.io/cli-test-automation-poc/" if owner else ""
+          smoke_latest_url = f"{pages_url}smoke/latest/" if pages_url else ""
 
           lines = []
           lines.append("### CLI test dashboard summary (smoke)")
@@ -129,11 +130,12 @@ jobs:
           lines.append(f"- **Failed**: {failed}")
           lines.append(f"- **Error**: {error}")
           lines.append(f"- **Skipped**: {skipped}")
-          if pages_url:
+          if smoke_latest_url:
               lines.append("")
-              lines.append(f"- **GitHub Pages dashboard**: {pages_url}")
+              lines.append(f"- **Smoke dashboard (latest)**: {smoke_latest_url}")
+              lines.append(f"- **All dashboards (branch root)**: {pages_url}")
           lines.append("")
-          lines.append("_Smoke tests only. Rendered from `reports/junit.xml`. Generate locally with `pytest -m smoke --junitxml=reports/junit.xml` and `python -m utils.cli_dashboard --junit-path reports/junit.xml --output-dir dashboard`._")
+          lines.append("_Smoke tests only. Rendered from `reports/junit.xml`. Dashboard published to the `test-dashboard` branch under `smoke/<run-id>/` with `smoke/latest/` as a stable pointer._")
 
           summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
           if summary_path:
