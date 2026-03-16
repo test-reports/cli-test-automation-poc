@@ -69,8 +69,23 @@ jobs:
             git worktree add -B "${DASHBOARD_BRANCH}" "${WORKTREE_DIR}"
           fi
 
-          # Sync generated dashboard into the worktree (preserve .git)
-          rsync -a --delete --exclude='.git' dashboard/ "${WORKTREE_DIR}/"
+          # Each suite gets its own folder under the worktree (e.g. smoke/, regression/)
+          SUITE_NAME="smoke"
+
+          # Timestamped run folder for history plus a "latest" pointer for convenience
+          RUN_ID="${GITHUB_RUN_ID:-$(date +%Y%m%d-%H%M%S)}"
+          RUN_DIR="${WORKTREE_DIR}/${SUITE_NAME}/${RUN_ID}"
+          LATEST_DIR="${WORKTREE_DIR}/${SUITE_NAME}/latest"
+
+          mkdir -p "${RUN_DIR}" "${LATEST_DIR}"
+
+          echo "Syncing dashboard to suite run directory: ${RUN_DIR}"
+          # Keep each run's snapshot; delete only within this run's folder
+          rsync -a --delete --exclude='.git' dashboard/ "${RUN_DIR}/"
+
+          echo "Updating suite latest pointer: ${LATEST_DIR}"
+          # Latest always reflects the most recent run, without touching other suites
+          rsync -a --delete --exclude='.git' dashboard/ "${LATEST_DIR}/"
 
           cd "${WORKTREE_DIR}"
           git add .
