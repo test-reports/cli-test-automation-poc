@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CLI Test Dashboards</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              background: '#0f1114',
+              surface: '#151820',
+              border: '#1f2430',
+              success: '#22c55e',
+              failed: '#fb7185',
+              warning: '#eab308',
+              info: '#38bdf8'
+            }
+          }
+        }
+      };
+    </script>
+    <style>
+      body {
+        background: #0f1114;
+        color: #e6e8eb;
+      }
+      .tile-link:hover {
+        background-color: rgba(30, 41, 59, 0.6);
+        border-color: rgba(71, 85, 105, 0.8);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen font-sans">
+    <div class="max-w-4xl mx-auto px-4 py-12">
+      <header class="mb-10 text-center">
+        <h1 class="text-3xl font-semibold tracking-tight text-slate-100">CLI Test Dashboards</h1>
+        <p class="text-sm text-slate-400 mt-2">Choose a report to view</p>
+      </header>
+
+      <section class="grid gap-6 md:grid-cols-2">
+        <a href="smoke/" class="tile-link block bg-surface rounded-xl border border-slate-800 p-6 transition-colors">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 text-lg font-semibold">S</span>
+            <h2 class="text-lg font-semibold text-slate-200">Smoke tests</h2>
+          </div>
+          <p class="text-sm text-slate-400">PR and push runs. Quick sanity checks.</p>
+        </a>
+
+        <a href="regression/" class="tile-link block bg-surface rounded-xl border border-slate-800 p-6 transition-colors">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400 border border-sky-500/50 text-lg font-semibold">R</span>
+            <h2 class="text-lg font-semibold text-slate-200">Regression tests</h2>
+          </div>
+          <p class="text-sm text-slate-400">Scheduled full suite runs.</p>
+        </a>
+      </section>
+
+      <p class="mt-8 text-center text-xs text-slate-500">JUnit XML report dashboards · Tailwind + Chart.js</p>
+    </div>
+  </body>
+</html>
