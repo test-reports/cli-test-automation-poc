@@ -57,6 +57,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git fetch origin --prune
+          git fetch origin "${DASHBOARD_BRANCH}:${DASHBOARD_BRANCH}" 2>/dev/null || true
 
           WORKTREE_DIR="$(mktemp -d)"
           if git show-ref --verify --quiet "refs/remotes/origin/${DASHBOARD_BRANCH}"; then
@@ -68,7 +69,11 @@ jobs:
           mkdir -p "${WORKTREE_DIR}/smoke"
           rsync -a --delete dashboard/ "${WORKTREE_DIR}/smoke/"
 
-          cp utils/root_index.html "${WORKTREE_DIR}/index.html"
+          if [ -f utils/root_index.html ]; then
+            cp utils/root_index.html "${WORKTREE_DIR}/index.html"
+          else
+            python3 -c 'import pathlib; pathlib.Path("'"${WORKTREE_DIR}"'/index.html").write_text("""<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"/><meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\"/><title>CLI Test Dashboards</title><script src=\"https://cdn.tailwindcss.com\"></script><script>tailwind.config={darkMode:\"class\",theme:{extend:{colors:{background:\"#0f1114\",surface:\"#151820\"}}}}</script><style>body{background:#0f1114;color:#e6e8eb}</style></head><body class=\"min-h-screen font-sans\"><div class=\"max-w-4xl mx-auto px-4 py-12\"><header class=\"mb-10 text-center\"><h1 class=\"text-3xl font-semibold text-slate-100\">CLI Test Dashboards</h1><p class=\"text-sm text-slate-400 mt-2\">Choose a report</p></header><section class=\"grid gap-6 md:grid-cols-2\"><a href=\"smoke/\" class=\"block bg-surface rounded-xl border border-slate-800 p-6 hover:bg-slate-800/60\"><h2 class=\"text-lg font-semibold text-slate-200\">Smoke tests</h2><p class=\"text-sm text-slate-400 mt-1\">PR / push</p></a><a href=\"regression/\" class=\"block bg-surface rounded-xl border border-slate-800 p-6 hover:bg-slate-800/60\"><h2 class=\"text-lg font-semibold text-slate-200\">Regression tests</h2><p class=\"text-sm text-slate-400 mt-1\">Scheduled</p></a></section></div></body></html>""")'
+          fi
 
           cd "${WORKTREE_DIR}"
           git add .
