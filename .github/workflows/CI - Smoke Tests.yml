@@ -68,7 +68,7 @@ jobs:
           mkdir -p "${WORKTREE_DIR}/smoke"
           rsync -a --delete dashboard/ "${WORKTREE_DIR}/smoke/"
 
-          cp pages-landing/index.html "${WORKTREE_DIR}/index.html"
+          printf '%s\n' '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>CLI Test Dashboards</title></head><body><h1>CLI Test Dashboards</h1><ul><li><a href="smoke/">Smoke tests</a> (PR / push)</li><li><a href="regression/">Regression tests</a> (scheduled)</li></ul></body></html>' > "${WORKTREE_DIR}/index.html"
 
           cd "${WORKTREE_DIR}"
           git add .
