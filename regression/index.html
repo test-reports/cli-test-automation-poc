@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CLI Test Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              background: '#0f1114',
+              surface: '#151820',
+              border: '#1f2430',
+              success: '#22c55e',
+              failed: '#fb7185',
+              warning: '#eab308',
+              info: '#38bdf8'
+            }
+          }
+        }
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+      body {
+        background: #0f1114;
+        color: #e6e8eb;
+      }
+      .chart-container {
+        position: relative;
+        height: 260px;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen font-sans">
+    <div class="max-w-6xl mx-auto px-4 py-8">
+      <header class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-semibold tracking-tight">CLI Test Dashboard</h1>
+          <p class="text-sm text-slate-400 mt-1">Run date: 2026-03-17 · 2026-03-17 12:59:03 PDT</p>
+          <p class="text-xs text-slate-500 mt-1">Summary view generated from JUnit XML report.</p>
+        </div>
+      </header>
+      <section class="grid gap-4 md:grid-cols-4 mb-8">
+        <div class="bg-surface rounded-xl border border-slate-800 p-4">
+          <div class="text-xs uppercase tracking-wide text-slate-400 mb-1">Total tests</div>
+          <div class="text-2xl font-semibold">22</div>
+        </div>
+        <div class="bg-surface rounded-xl border border-slate-800 p-4">
+          <div class="text-xs uppercase tracking-wide text-slate-400 mb-1">Passed</div>
+          <div class="text-2xl font-semibold text-emerald-400">18</div>
+        </div>
+        <div class="bg-surface rounded-xl border border-slate-800 p-4">
+          <div class="text-xs uppercase tracking-wide text-slate-400 mb-1">Failed / Error</div>
+          <div class="text-2xl font-semibold text-rose-400">4</div>
+        </div>
+        <div class="bg-surface rounded-xl border border-slate-800 p-4">
+          <div class="text-xs uppercase tracking-wide text-slate-400 mb-1">Pass rate</div>
+          <div class="text-2xl font-semibold text-sky-400">81.8%</div>
+        </div>
+      </section>
+
+      <section class="grid gap-6 md:grid-cols-2">
+        <div class="bg-surface rounded-xl border border-slate-800 p-4">
+          <h2 class="text-sm font-semibold mb-3">Result distribution</h2>
+          <div class="chart-container">
+            <canvas id="resultDistributionChart"></canvas>
+          </div>
+        </div>
+        <div class="bg-surface rounded-xl border border-slate-800 p-4">
+          <h2 class="text-sm font-semibold mb-3">Summary</h2>
+          <p class="text-sm text-slate-300">
+            This dashboard summarizes the latest test run. Counts and test list are derived from the JUnit XML report.
+          </p>
+          <ul class="mt-4 space-y-1 text-sm text-slate-300">
+            <li><span class="text-slate-400">Passed:</span> 18</li>
+            <li><span class="text-slate-400">Failed:</span> 4</li>
+            <li><span class="text-slate-400">Error:</span> 0</li>
+            <li><span class="text-slate-400">Skipped:</span> 0</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="mt-8 bg-surface rounded-xl border border-slate-800 p-4">
+        <h2 class="text-sm font-semibold mb-3">All tests</h2>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-left text-sm">
+            <thead>
+              <tr class="border-b border-slate-800 text-xs uppercase tracking-wide text-slate-500">
+                <th class="py-2 px-3 w-12">#</th>
+                <th class="py-2 px-3">Test</th>
+                <th class="py-2 px-3">Status</th>
+                <th class="py-2 px-3">Error Message</th>
+              </tr>
+            </thead>
+            <tbody>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">1</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_posts_returns_exactly_100_posts</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-rose-500/20 text-rose-400 border border-rose-500/50">Failed</span></td><td class="py-3 px-3 text-xs text-slate-300 max-w-md break-words">AssertionError: Expected 99 posts, got 100
+assert 100 == 99</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">2</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_single_user_has_expected_keys</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-rose-500/20 text-rose-400 border border-rose-500/50">Failed</span></td><td class="py-3 px-3 text-xs text-slate-300 max-w-md break-words">AssertionError: Expected 'avatar' key (intentional failure for demo)
+assert 'avatar' in {'id': 1, 'name': 'Leanne Graham', 'username': 'Bret', 'email': 'Sincere@april.biz', 'address': {'street': 'Kulas Light', 'suite': 'Apt. 556', 'city': 'Gwenborough', 'zipcode': '92998-3874', 'geo': {'lat': '-37.3159', 'lng': '81.1496'}}, 'phone': '1-770-736-8031 x56442', 'website': 'hildegard.org', 'company': {'name': 'Romaguera-Crona', 'catchPhrase': 'Multi-layered client-server neural-net', 'bs': 'harness r</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">3</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_todos_returns_200</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-rose-500/20 text-rose-400 border border-rose-500/50">Failed</span></td><td class="py-3 px-3 text-xs text-slate-300 max-w-md break-words">AssertionError: Expected status 201 for GET /todos, got 200
+assert 200 == 201</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">4</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_users_returns_200</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-rose-500/20 text-rose-400 border border-rose-500/50">Failed</span></td><td class="py-3 px-3 text-xs text-slate-300 max-w-md break-words">AssertionError: Expected status 201 for GET /users, got 200
+assert 200 == 201</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">5</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_album_photos_returns_list</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">6</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_albums_returns_200</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">7</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_albums_returns_list</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">8</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_comments_returns_200</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">9</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_comments_returns_list</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">10</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_photos_returns_200_and_list</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">11</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_post_comments_returns_list</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">12</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_posts_returns_200</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">13</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_posts_returns_list</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">14</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_single_album_has_expected_keys</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">15</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_single_comment_has_expected_keys</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">16</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_single_photo_has_expected_keys</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">17</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_single_post_has_expected_keys</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">18</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_single_todo_has_expected_keys</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">19</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_todos_returns_list</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">20</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_user_posts_returns_list</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">21</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_user_todos_returns_list</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+<tr class="border-b border-slate-800 hover:bg-slate-800/40"><td class="py-3 px-3 w-12 text-xs text-slate-500 tabular-nums">22</td><td class="py-3 px-3 text-sm text-slate-200">tests.test_api_jsonplaceholder::test_get_users_returns_list</td><td class="py-3 px-3 text-sm"><span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/50">Passed</span></td><td class="py-3 px-3 text-xs text-slate-500">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const ctx = document.getElementById('resultDistributionChart');
+      if (ctx) {
+        new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Passed', 'Failed', 'Error', 'Skipped'],
+            datasets: [{
+              data: [18, 4, 0, 0],
+              backgroundColor: [
+                '#22c55e',
+                '#fb7185',
+                '#f97316',
+                '#64748b'
+              ],
+              borderColor: '#020617',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  color: '#e5e7eb'
+                }
+              }
+            }
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
